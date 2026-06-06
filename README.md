@@ -41,13 +41,24 @@ Python 3.13 and every dependency (PyTorch is pulled from the CUDA 12.8 index,
 ```powershell
 cd sidecar
 uv sync                                          # create .venv + install everything
-uv run python scripts/smoke_asr.py <audio.wav>   # Phase 1 validation
+uv run python scripts/smoke_asr.py <audio.wav>   # quick model check
 ```
+
+## Run (live transcription)
+
+```powershell
+cd sidecar
+uv run python -m transcribe_sidecar.live            # English/auto (Parakeet)
+uv run python -m transcribe_sidecar.live --lang sv  # Swedish (KB-Whisper, forced)
+```
+
+Speak (shows as `[  Me]`) and let meeting audio play (`[Them]`). `Ctrl-C` saves the
+transcript (JSON / Markdown / SRT) to `sidecar/transcripts/`.
 
 ## Status
 
 - [x] Phase 0 — scaffold & environment
-- [ ] Phase 1 — capture + VAD + Parakeet (headless)
+- [~] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
 - [ ] Phase 2 — FastAPI WebSocket service
 - [ ] Phase 3 — WinUI shell + live captions
 - [ ] Phase 4 — transcript view + export

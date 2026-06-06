@@ -32,8 +32,13 @@ They communicate over **localhost**:
    punctuation. True low-latency streaming is a later optimization.
 4. **Sequential GPU use.** ASR runs live; the summary LLM runs after the
    meeting, so the two models never contend for VRAM (matters on a 6 GB card).
-5. **Language auto-detection.** Parakeet-TDT-0.6B-v3 auto-detects language;
-   meetings are Swedish or English (not mixed), so no manual toggle is needed.
+5. **Per-language engine (manual switch).** Parakeet-TDT-0.6B-v3 has no language
+   setting (confirmed in the installed code) — it auto-detects, and did so
+   unreliably on short Swedish utterances. So the language is set manually:
+   **English/auto → Parakeet** (fast), **Swedish → KB-Whisper** (KBLab, ~47% lower
+   WER than whisper-large-v3) via faster-whisper with the language forced. Only the
+   selected engine loads, so VRAM stays low. Set with `TRANSCRIBE_LANGUAGE` or
+   `--language` / `--lang`.
 
 ## Pinned environment facts (verified 2026-06)
 
@@ -50,6 +55,10 @@ They communicate over **localhost**:
   Ollama tag at Phase 5; bump to E4B if Swedish summaries are thin.
 - **uv** manages the sidecar (`pyproject.toml` + `uv.lock`): `[tool.uv.sources]`
   routes torch/torchaudio to the cu128 index and `transformers` to git main.
+- **faster-whisper + KB-Whisper** for the Swedish path (CTranslate2). On Windows,
+  CTranslate2 locates cuDNN/cuBLAS via torch's bundled `nvidia/*` DLLs, which
+  `asr/whisper.py` adds to the DLL search path. compute_type float16 (~3 GB) or
+  int8 for the work PC.
 
 ## Machines
 

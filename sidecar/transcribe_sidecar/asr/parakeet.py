@@ -6,19 +6,12 @@ it is not yet in a stable release. Language is auto-detected, no NeMo required.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 
 import numpy as np
 
+from .base import AsrSegment
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class AsrSegment:
-    text: str
-    start: float           # seconds
-    end: float
-    language: str | None = None
 
 
 class ParakeetAsr:
@@ -27,6 +20,10 @@ class ParakeetAsr:
         self.sample_rate = sample_rate
         self._device = device
         self._pipe = None
+
+    @property
+    def label(self) -> str:
+        return "Parakeet (auto)"
 
     def load(self) -> None:
         import torch
