@@ -1,0 +1,14 @@
+# Normalize all text files to LF in the repo and on checkout (cross-platform safe).
+* text=auto eol=lf
+
+# Binary assets — never touch line endings.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.wav  binary
+*.flac binary
+*.mp3  binary
+*.nemo binary
+*.pdf  binary

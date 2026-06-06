@@ -34,8 +34,13 @@ def _read_json(p: Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def _write_text(p: Path, text: str) -> None:
+    # Always UTF-8 (no BOM) with LF line endings, so files are portable.
+    p.write_text(text.replace("\r\n", "\n").replace("\r", "\n"), encoding="utf-8", newline="\n")
+
+
 def _write_json(p: Path, data: dict) -> None:
-    p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_text(p, json.dumps(data, ensure_ascii=False, indent=2))
 
 
 def _derive_title(transcript: Transcript) -> str:
@@ -52,9 +57,9 @@ def save_meeting(transcript: Transcript, *, settings: Settings, language: str, e
                  created: str | None = None) -> dict:
     d = meetings_root(settings) / transcript.title
     d.mkdir(parents=True, exist_ok=True)
-    (d / "transcript.json").write_text(transcript.to_json(), encoding="utf-8")
-    (d / "transcript.md").write_text(transcript.to_markdown(), encoding="utf-8")
-    (d / "transcript.srt").write_text(transcript.to_srt(), encoding="utf-8")
+    _write_text(d / "transcript.json", transcript.to_json())
+    _write_text(d / "transcript.md", transcript.to_markdown())
+    _write_text(d / "transcript.srt", transcript.to_srt())
     dur = transcript.utterances[-1].end if transcript.utterances else 0.0
     meta = {
         "id": transcript.title,
@@ -109,7 +114,7 @@ def set_summary(settings: Settings, mid: str, summary: str) -> bool:
     d = meetings_root(settings) / mid
     if not (d / "meta.json").exists():
         return False
-    (d / "summary.md").write_text(summary, encoding="utf-8")
+    _write_text(d / "summary.md", summary)
     meta = _read_json(d / "meta.json")
     meta["has_summary"] = True
     _write_json(d / "meta.json", meta)

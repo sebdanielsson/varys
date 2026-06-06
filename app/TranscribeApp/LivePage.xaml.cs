@@ -18,6 +18,7 @@ public sealed partial class LivePage : Page
     {
         InitializeComponent();
         NavigationCacheMode = NavigationCacheMode.Required;   // keep state across tab switches
+        ToolTipService.SetToolTip(OpenLogsButton, AppLog.FilePath);
         App.Sidecar.Event += OnEvent;
         App.Sidecar.Log += OnLog;
     }
@@ -138,11 +139,11 @@ public sealed partial class LivePage : Page
         try
         {
             System.IO.Directory.CreateDirectory(AppLog.Dir);
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = AppLog.Dir,
-                UseShellExecute = true,
-            });
+            if (!System.IO.File.Exists(AppLog.FilePath))
+                System.IO.File.WriteAllText(AppLog.FilePath, "");
+            // Reliable: launch Explorer with the log file selected (opening a bare
+            // directory via UseShellExecute can fail).
+            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{AppLog.FilePath}\"");
         }
         catch (Exception ex)
         {

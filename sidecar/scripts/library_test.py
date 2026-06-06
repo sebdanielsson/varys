@@ -34,9 +34,9 @@ def main() -> None:
         ("Them", "Great, I'll book the demo and tell the team about the database migration."),
     ])
     m_sv = make("meeting-test-sv-001", "sv", [
-        ("Them", "Vi maste prata om budgeten for marknadsforing nasta kvartal."),
-        ("Me", "Jag tycker vi okar budgeten med tio procent for kampanjen."),
-        ("Them", "Okej, jag bokar ett mote med ekonomiavdelningen om det."),
+        ("Them", "Vi måste prata om budgeten för marknadsföring nästa kvartal."),
+        ("Me", "Jag tycker vi ökar budgeten med tio procent för kampanjen."),
+        ("Them", "Okej, jag bokar ett möte med ekonomiavdelningen om det."),
     ])
     for t, lang in [(m_en, "en"), (m_sv, "sv")]:
         meta = library.save_meeting(t, settings=s, language=lang, engine="test")

@@ -52,9 +52,9 @@ class Transcript:
             "md": d / f"{self.title}.md",
             "srt": d / f"{self.title}.srt",
         }
-        paths["json"].write_text(self.to_json(), encoding="utf-8")
-        paths["md"].write_text(self.to_markdown(), encoding="utf-8")
-        paths["srt"].write_text(self.to_srt(), encoding="utf-8")
+        paths["json"].write_text(self.to_json(), encoding="utf-8", newline="\n")
+        paths["md"].write_text(self.to_markdown(), encoding="utf-8", newline="\n")
+        paths["srt"].write_text(self.to_srt(), encoding="utf-8", newline="\n")
         return {k: str(v) for k, v in paths.items()}
 
 

@@ -22,7 +22,7 @@ public static class AppLog
         {
             Directory.CreateDirectory(Dir);
             lock (Gate)
-                File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {message}{Environment.NewLine}");
+                File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {message}\n");
         }
         catch
         {
