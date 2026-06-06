@@ -34,6 +34,15 @@ public sealed partial class MeetingsPage : Page
         NavigationCacheMode = NavigationCacheMode.Required;
         NotesWeb.DefaultBackgroundColor = Colors.Transparent;
         NotesWeb.NavigationCompleted += OnNotesRendered;
+        // The notes are rendered HTML inside a WebView2, not XAML, so they don't react to
+        // ThemeResource changes. Re-render when the app theme flips so the markdown's text
+        // and table colors track light/dark instead of going stale (e.g. dark text on a
+        // now-dark card). NavigationCacheMode.Required keeps this page (and handler) alive.
+        ActualThemeChanged += (_, _) =>
+        {
+            if (_currentId is not null && !_notesEditing)
+                RenderNotes();
+        };
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -122,6 +131,11 @@ public sealed partial class MeetingsPage : Page
         try
         {
             await NotesWeb.EnsureCoreWebView2Async();
+            // Re-assert transparency now that the core is initialized — setting it only in the
+            // constructor (before EnsureCoreWebView2Async) doesn't reliably stick, leaving an
+            // opaque box that reads as a card-in-a-card. Transparent lets the markdown sit
+            // directly on the Notes card surface.
+            NotesWeb.DefaultBackgroundColor = Colors.Transparent;
             NotesWeb.NavigateToString(MarkdownRenderer.ToHtml(_summaryMd, ActualTheme));
         }
         catch
