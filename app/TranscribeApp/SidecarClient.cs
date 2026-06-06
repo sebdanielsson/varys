@@ -148,6 +148,14 @@ public sealed class SidecarClient : IAsyncDisposable
         _http.PatchAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}",
             new StringContent(JsonSerializer.Serialize(new { title }), Encoding.UTF8, "application/json"));
 
+    public Task SaveTranscriptAsync(string id, string text) =>
+        _http.PutAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}/transcript",
+            new StringContent(JsonSerializer.Serialize(new { text }), Encoding.UTF8, "application/json"));
+
+    public Task SaveNotesAsync(string id, string text) =>
+        _http.PutAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}/notes",
+            new StringContent(JsonSerializer.Serialize(new { text }), Encoding.UTF8, "application/json"));
+
     private async Task<bool> IsHealthyAsync(CancellationToken ct)
     {
         try

@@ -103,51 +103,90 @@
                         <TextBlock x:Name="DetailSubtitle" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
-                    <CommandBar Grid.Column="1" Background="Transparent" DefaultLabelPosition="Collapsed"
-                                OverflowButtonVisibility="Collapsed" VerticalAlignment="Top">
-                        <AppBarButton x:Name="SummarizeBtn" Label="Summarize" Click="OnSummarizeMeeting">
-                            <AppBarButton.Icon><FontIcon Glyph="&#xE8A5;" /></AppBarButton.Icon>
-                        </AppBarButton>
-                        <AppBarButton Label="Open folder" Click="OnOpenFolder">
-                            <AppBarButton.Icon><FontIcon Glyph="&#xE838;" /></AppBarButton.Icon>
-                        </AppBarButton>
-                        <AppBarButton Label="Delete" Click="OnDeleteMeeting">
-                            <AppBarButton.Icon><FontIcon Glyph="&#xE74D;" /></AppBarButton.Icon>
-                        </AppBarButton>
-                    </CommandBar>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+                        <Button x:Name="SummarizeBtn" Click="OnSummarizeMeeting"
+                                ToolTipService.ToolTip="Generate notes (summarize)">
+                            <FontIcon Glyph="&#xE8A5;" FontSize="16" />
+                        </Button>
+                        <Button Click="OnOpenFolder" ToolTipService.ToolTip="Open meeting folder">
+                            <FontIcon Glyph="&#xE838;" FontSize="16" />
+                        </Button>
+                        <Button Click="OnDeleteMeeting" ToolTipService.ToolTip="Delete meeting (to trash)">
+                            <FontIcon Glyph="&#xE74D;" FontSize="16" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <Border Grid.Row="1" x:Name="SummaryCard" Visibility="Collapsed" CornerRadius="8"
                         Padding="12" Background="{ThemeResource LayerFillColorDefaultBrush}">
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Notes" FontWeight="SemiBold" />
-                        <TextBlock x:Name="DetailSummary" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-                    </StackPanel>
+                    <Grid RowSpacing="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Notes" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" x:Name="NotesEditBtn" Click="OnToggleNotesEdit"
+                                    ToolTipService.ToolTip="Edit notes" Padding="7,3">
+                                <FontIcon Glyph="&#xE70F;" FontSize="14" />
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <WebView2 x:Name="NotesWeb" Height="60" />
+                            <TextBox x:Name="NotesEdit" Visibility="Collapsed" AcceptsReturn="True"
+                                     TextWrapping="Wrap" Height="220" FontFamily="Cascadia Mono, Consolas" />
+                        </Grid>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Row="2" CornerRadius="8" Padding="4"
                         Background="{ThemeResource LayerFillColorDefaultBrush}">
-                    <ListView x:Name="DetailTranscript" ItemsSource="{x:Bind DetailUtterances}"
-                              SelectionMode="None" Padding="6">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="local:CaptionItem">
-                                <Grid ColumnSpacing="10" Padding="2,5">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Background="{x:Bind Color}" CornerRadius="10" Height="22"
-                                            Padding="9,0" MinWidth="56" VerticalAlignment="Top">
-                                        <TextBlock Text="{x:Bind Speaker}" Foreground="White" FontSize="12"
-                                                   FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap"
-                                               IsTextSelectionEnabled="True" VerticalAlignment="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Padding="8,6,8,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Transcript" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" x:Name="TranscriptEditBtn" Click="OnToggleTranscriptEdit"
+                                    ToolTipService.ToolTip="Edit transcript" Padding="7,3">
+                                <FontIcon Glyph="&#xE70F;" FontSize="14" />
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <ListView x:Name="DetailTranscript" ItemsSource="{x:Bind DetailUtterances}"
+                                      SelectionMode="None" Padding="6">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="local:CaptionItem">
+                                        <Grid ColumnSpacing="10" Padding="2,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Background="{x:Bind Color}" CornerRadius="10" Height="22"
+                                                    Padding="9,0" MinWidth="56" VerticalAlignment="Top">
+                                                <TextBlock Text="{x:Bind Speaker}" Foreground="White" FontSize="12"
+                                                           FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap"
+                                                       IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <TextBox x:Name="TranscriptEdit" Visibility="Collapsed" AcceptsReturn="True"
+                                     TextWrapping="Wrap" FontFamily="Cascadia Mono, Consolas" Margin="6" />
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
 

@@ -2,13 +2,15 @@ using System;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Web.WebView2.Core;
 
 namespace TranscribeApp;
 
-/// <summary>Meeting library: browse / search past meetings and view transcript + notes.</summary>
+/// <summary>Meeting library: browse / search, view + edit transcript and notes.</summary>
 public sealed partial class MeetingsPage : Page
 {
     public ObservableCollection<MeetingMeta> Meetings { get; } = new();
@@ -17,11 +19,20 @@ public sealed partial class MeetingsPage : Page
 
     private string? _currentId;
     private string? _currentDir;
+    private string _summaryMd = "";
+    private string _transcriptMd = "";
+    private bool _notesEditing;
+    private bool _transcriptEditing;
+
+    private const int GlyphEdit = 0xE70F;
+    private const int GlyphSave = 0xE74E;
 
     public MeetingsPage()
     {
         InitializeComponent();
         NavigationCacheMode = NavigationCacheMode.Required;
+        NotesWeb.DefaultBackgroundColor = Colors.Transparent;
+        NotesWeb.NavigationCompleted += OnNotesRendered;
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -70,23 +81,135 @@ public sealed partial class MeetingsPage : Page
                 return;
             _currentId = detail.Meta.Id;
             _currentDir = detail.Dir;
+            _summaryMd = detail.Summary ?? "";
+            _transcriptMd = detail.TranscriptMd ?? "";
             DetailTitle.Text = detail.Meta.Title;
             DetailSubtitle.Text = detail.Meta.Subtitle + (detail.Meta.Indexed ? "   ·   indexed" : "");
             DetailUtterances.Clear();
             foreach (var u in detail.Transcript.Utterances)
                 DetailUtterances.Add(CaptionItem.For(u.Speaker, u.Text));
-            DetailSummary.Text = detail.Summary;
-            var hasSummary = !string.IsNullOrWhiteSpace(detail.Summary);
-            SummaryCard.Visibility = hasSummary ? Visibility.Visible : Visibility.Collapsed;
-            SummarizeBtn.Label = hasSummary ? "Re-summarize" : "Summarize";
+
+            ResetEditModes();
+            RenderNotes();
+            SummaryCard.Visibility = Visibility.Visible;
             DetailEmpty.Visibility = Visibility.Collapsed;
             DetailContent.Visibility = Visibility.Visible;
         }
         catch
         {
-            // ignore; leave current detail
+            // leave current detail on error
         }
     }
+
+    // --- notes / transcript edit + preview ---
+
+    private void ResetEditModes()
+    {
+        _notesEditing = false;
+        _transcriptEditing = false;
+        NotesEdit.Visibility = Visibility.Collapsed;
+        NotesWeb.Visibility = Visibility.Visible;
+        TranscriptEdit.Visibility = Visibility.Collapsed;
+        DetailTranscript.Visibility = Visibility.Visible;
+        SetIcon(NotesEditBtn, GlyphEdit);
+        SetIcon(TranscriptEditBtn, GlyphEdit);
+        ToolTipService.SetToolTip(NotesEditBtn, "Edit notes");
+        ToolTipService.SetToolTip(TranscriptEditBtn, "Edit transcript");
+    }
+
+    private async void RenderNotes()
+    {
+        try
+        {
+            await NotesWeb.EnsureCoreWebView2Async();
+            NotesWeb.NavigateToString(MarkdownRenderer.ToHtml(_summaryMd, ActualTheme));
+        }
+        catch
+        {
+            // WebView2 runtime missing etc. — leave the card empty
+        }
+    }
+
+    private async void OnNotesRendered(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+    {
+        try
+        {
+            var h = await NotesWeb.ExecuteScriptAsync("document.body.scrollHeight");
+            if (int.TryParse(h, out var px))
+                NotesWeb.Height = Math.Clamp(px + 8, 40, 600);
+        }
+        catch
+        {
+        }
+    }
+
+    private async void OnToggleNotesEdit(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is null)
+            return;
+        if (!_notesEditing)
+        {
+            NotesEdit.Text = _summaryMd;
+            NotesEdit.Visibility = Visibility.Visible;
+            NotesWeb.Visibility = Visibility.Collapsed;
+            SetIcon(NotesEditBtn, GlyphSave);
+            ToolTipService.SetToolTip(NotesEditBtn, "Save notes");
+            _notesEditing = true;
+        }
+        else
+        {
+            _summaryMd = NotesEdit.Text;
+            await App.Sidecar.SaveNotesAsync(_currentId, _summaryMd);
+            NotesEdit.Visibility = Visibility.Collapsed;
+            NotesWeb.Visibility = Visibility.Visible;
+            RenderNotes();
+            SetIcon(NotesEditBtn, GlyphEdit);
+            ToolTipService.SetToolTip(NotesEditBtn, "Edit notes");
+            _notesEditing = false;
+            await RefreshMeetingsAsync();
+        }
+    }
+
+    private async void OnToggleTranscriptEdit(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is null)
+            return;
+        if (!_transcriptEditing)
+        {
+            TranscriptEdit.Text = _transcriptMd;
+            TranscriptEdit.Visibility = Visibility.Visible;
+            DetailTranscript.Visibility = Visibility.Collapsed;
+            SetIcon(TranscriptEditBtn, GlyphSave);
+            ToolTipService.SetToolTip(TranscriptEditBtn, "Save transcript");
+            _transcriptEditing = true;
+        }
+        else
+        {
+            DetailRing.IsActive = true;
+            try
+            {
+                await App.Sidecar.SaveTranscriptAsync(_currentId, TranscriptEdit.Text);
+                TranscriptEdit.Visibility = Visibility.Collapsed;
+                DetailTranscript.Visibility = Visibility.Visible;
+                SetIcon(TranscriptEditBtn, GlyphEdit);
+                ToolTipService.SetToolTip(TranscriptEditBtn, "Edit transcript");
+                _transcriptEditing = false;
+                await LoadDetailAsync(_currentId);   // reload badges from the re-derived transcript
+            }
+            finally
+            {
+                DetailRing.IsActive = false;
+            }
+        }
+    }
+
+    private static void SetIcon(Button button, int codepoint)
+    {
+        if (button.Content is FontIcon icon)
+            icon.Glyph = char.ConvertFromUtf32(codepoint);
+    }
+
+    // --- search ---
 
     private async void OnSearchSubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
@@ -133,6 +256,8 @@ public sealed partial class MeetingsPage : Page
         ListEmpty.Visibility = Meetings.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    // --- actions ---
+
     private async void OnSummarizeMeeting(object sender, RoutedEventArgs e)
     {
         if (_currentId is null)
@@ -141,18 +266,15 @@ public sealed partial class MeetingsPage : Page
         try
         {
             using var doc = JsonDocument.Parse(await App.Sidecar.SummarizeMeetingAsync(_currentId));
-            var root = doc.RootElement;
-            if (root.GetProperty("status").GetString() == "ok")
+            if (doc.RootElement.GetProperty("status").GetString() == "ok")
             {
-                DetailSummary.Text = root.GetProperty("summary").GetString() ?? "";
-                SummaryCard.Visibility = Visibility.Visible;
-                SummarizeBtn.Label = "Re-summarize";
-                await RefreshMeetingsAsync();   // refresh the has-summary glyph
+                _summaryMd = doc.RootElement.GetProperty("summary").GetString() ?? "";
+                RenderNotes();
+                await RefreshMeetingsAsync();
             }
         }
         catch
         {
-            // ignore
         }
         finally
         {
@@ -196,7 +318,6 @@ public sealed partial class MeetingsPage : Page
         }
         catch
         {
-            // ignore
         }
     }
 }

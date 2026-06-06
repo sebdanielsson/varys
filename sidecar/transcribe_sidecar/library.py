@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -118,6 +119,73 @@ def set_summary(settings: Settings, mid: str, summary: str) -> bool:
     meta = _read_json(d / "meta.json")
     meta["has_summary"] = True
     _write_json(d / "meta.json", meta)
+    return True
+
+
+def set_notes(settings: Settings, mid: str, text: str) -> bool:
+    d = meetings_root(settings) / mid
+    if not (d / "meta.json").exists():
+        return False
+    _write_text(d / "summary.md", text)
+    meta = _read_json(d / "meta.json")
+    meta["has_summary"] = bool(text.strip())
+    _write_json(d / "meta.json", meta)
+    return True
+
+
+_LINE = re.compile(r"^\*\*(.+?)\*\*\s*\[([0-9:]+)\]:\s*(.*)$")
+
+
+def _hms_to_seconds(hms: str) -> float:
+    parts = [int(x) for x in hms.split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0)
+    return float(parts[0] * 3600 + parts[1] * 60 + parts[2])
+
+
+def parse_markdown_transcript(text: str) -> list[dict]:
+    """Parse edited '**Speaker** [HH:MM:SS]: text' lines back into utterances."""
+    utts: list[dict] = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        m = _LINE.match(line)
+        if m:
+            start = _hms_to_seconds(m.group(2))
+            utts.append({"speaker": m.group(1).strip(), "text": m.group(3).strip(),
+                         "start": start, "end": start})
+        elif utts:  # continuation of the previous line
+            utts[-1]["text"] = (utts[-1]["text"] + " " + line).strip()
+        else:
+            utts.append({"speaker": "", "text": line, "start": 0.0, "end": 0.0})
+    for i in range(len(utts) - 1):
+        utts[i]["end"] = max(utts[i]["start"], utts[i + 1]["start"])
+    if utts:
+        utts[-1]["end"] = utts[-1]["start"] + 2.0
+    return utts
+
+
+def save_transcript(settings: Settings, mid: str, md_text: str) -> bool:
+    """Save an edited transcript: re-derive json/md/srt and re-index for search."""
+    from .transcript.store import Transcript, Utterance
+
+    d = meetings_root(settings) / mid
+    if not (d / "meta.json").exists():
+        return False
+    t = Transcript(title=mid)
+    for u in parse_markdown_transcript(md_text):
+        t.add(Utterance(u["speaker"], u["text"], u["start"], u["end"], u.get("language")))
+    _write_text(d / "transcript.json", t.to_json())
+    _write_text(d / "transcript.md", t.to_markdown())
+    _write_text(d / "transcript.srt", t.to_srt())
+    meta = _read_json(d / "meta.json")
+    meta["utterances"] = len(t.utterances)
+    _write_json(d / "meta.json", meta)
+    try:
+        index_meeting(settings, mid)
+    except Exception:
+        logger.info("re-index after edit skipped for %s", mid, exc_info=True)
     return True
 
 

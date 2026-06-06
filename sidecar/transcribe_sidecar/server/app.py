@@ -116,6 +116,23 @@ def meeting_rename(mid: str, req: RenameRequest) -> dict:
     return {"status": "ok" if library.rename_meeting(get_settings(), mid, req.title) else "not_found"}
 
 
+class TextBody(BaseModel):
+    text: str
+
+
+@app.put("/meetings/{mid}/transcript")
+async def meeting_set_transcript(mid: str, body: TextBody) -> dict:
+    s = get_settings()
+    ok = await asyncio.get_running_loop().run_in_executor(
+        None, lambda: library.save_transcript(s, mid, body.text))
+    return {"status": "ok" if ok else "not_found"}
+
+
+@app.put("/meetings/{mid}/notes")
+def meeting_set_notes(mid: str, body: TextBody) -> dict:
+    return {"status": "ok" if library.set_notes(get_settings(), mid, body.text) else "not_found"}
+
+
 @app.delete("/meetings/{mid}")
 def meeting_delete(mid: str) -> dict:
     return {"status": "deleted" if library.delete_meeting(get_settings(), mid) else "not_found"}
