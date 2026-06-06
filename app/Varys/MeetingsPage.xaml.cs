@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
 
@@ -18,11 +19,11 @@ public sealed partial class MeetingsPage : Page
     public ObservableCollection<CaptionItem> DetailUtterances { get; } = new();
 
     private string? _currentId;
-    private string? _currentDir;
     private string _summaryMd = "";
     private string _transcriptMd = "";
     private bool _notesEditing;
     private bool _transcriptEditing;
+    private MeetingMeta? _ctxMeeting;   // the right-clicked list item
 
     private const int GlyphEdit = 0xE70F;
     private const int GlyphSave = 0xE74E;
@@ -80,7 +81,6 @@ public sealed partial class MeetingsPage : Page
             if (detail is null || string.IsNullOrEmpty(detail.Meta.Id))
                 return;
             _currentId = detail.Meta.Id;
-            _currentDir = detail.Dir;
             _summaryMd = detail.Summary ?? "";
             _transcriptMd = detail.TranscriptMd ?? "";
             DetailTitle.Text = detail.Meta.Title;
@@ -256,20 +256,45 @@ public sealed partial class MeetingsPage : Page
         ListEmpty.Visibility = Meetings.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // --- actions ---
+    // --- actions (shared, by meeting id) ---
 
-    private async void OnSummarizeMeeting(object sender, RoutedEventArgs e)
+    private async Task RenameAsync(string id, string currentTitle)
     {
-        if (_currentId is null)
+        var box = new TextBox { Text = currentTitle, AcceptsReturn = false };
+        box.Loaded += (_, _) => { box.Focus(FocusState.Programmatic); box.SelectAll(); };
+        var dialog = new ContentDialog
+        {
+            Title = "Rename meeting",
+            Content = box,
+            PrimaryButtonText = "Rename",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
             return;
+        var name = box.Text.Trim();
+        if (name.Length == 0 || name == currentTitle)
+            return;
+        await App.Sidecar.RenameMeetingAsync(id, name);
+        if (id == _currentId)
+            DetailTitle.Text = name;
+        await RefreshMeetingsAsync();
+    }
+
+    private async Task SummarizeIdAsync(string id)
+    {
         DetailRing.IsActive = true;
         try
         {
-            using var doc = JsonDocument.Parse(await App.Sidecar.SummarizeMeetingAsync(_currentId));
+            using var doc = JsonDocument.Parse(await App.Sidecar.SummarizeMeetingAsync(id));
             if (doc.RootElement.GetProperty("status").GetString() == "ok")
             {
-                _summaryMd = doc.RootElement.GetProperty("summary").GetString() ?? "";
-                RenderNotes();
+                if (id == _currentId)
+                {
+                    _summaryMd = doc.RootElement.GetProperty("summary").GetString() ?? "";
+                    RenderNotes();
+                }
                 await RefreshMeetingsAsync();
             }
         }
@@ -282,10 +307,8 @@ public sealed partial class MeetingsPage : Page
         }
     }
 
-    private async void OnDeleteMeeting(object sender, RoutedEventArgs e)
+    private async Task DeleteIdAsync(string id)
     {
-        if (_currentId is null)
-            return;
         var dialog = new ContentDialog
         {
             Title = "Delete meeting?",
@@ -297,27 +320,94 @@ public sealed partial class MeetingsPage : Page
         };
         if (await dialog.ShowAsync() != ContentDialogResult.Primary)
             return;
-        await App.Sidecar.DeleteMeetingAsync(_currentId);
-        _currentId = null;
-        DetailContent.Visibility = Visibility.Collapsed;
-        DetailEmpty.Visibility = Visibility.Visible;
+        await App.Sidecar.DeleteMeetingAsync(id);
+        if (id == _currentId)
+        {
+            _currentId = null;
+            DetailContent.Visibility = Visibility.Collapsed;
+            DetailEmpty.Visibility = Visibility.Visible;
+        }
         await RefreshMeetingsAsync();
     }
 
-    private void OnOpenFolder(object sender, RoutedEventArgs e)
+    private static string MeetingDir(string id) => System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varys", "meetings", id);
+
+    private static void OpenFolderFor(string id)
     {
-        if (string.IsNullOrEmpty(_currentDir))
-            return;
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = _currentDir,
+                FileName = MeetingDir(id),
                 UseShellExecute = true,
             });
         }
         catch
         {
         }
+    }
+
+    // --- header actions (operate on the open meeting) ---
+
+    private async void OnRenameMeeting(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is not null)
+            await RenameAsync(_currentId, DetailTitle.Text);
+    }
+
+    private async void OnTitleDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        if (_currentId is not null)
+            await RenameAsync(_currentId, DetailTitle.Text);
+    }
+
+    private async void OnSummarizeMeeting(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is not null)
+            await SummarizeIdAsync(_currentId);
+    }
+
+    private async void OnDeleteMeeting(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is not null)
+            await DeleteIdAsync(_currentId);
+    }
+
+    private void OnOpenFolder(object sender, RoutedEventArgs e)
+    {
+        if (_currentId is not null)
+            OpenFolderFor(_currentId);
+    }
+
+    // --- list context menu (operates on the right-clicked meeting) ---
+
+    private void OnItemRightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        _ctxMeeting = (sender as FrameworkElement)?.DataContext as MeetingMeta;
+    }
+
+    private async void OnCtxRename(object sender, RoutedEventArgs e)
+    {
+        if (_ctxMeeting is { } m)
+            await RenameAsync(m.Id, m.Title);
+    }
+
+    private async void OnCtxSummarize(object sender, RoutedEventArgs e)
+    {
+        if (_ctxMeeting is { } m)
+            await SummarizeIdAsync(m.Id);
+    }
+
+    private void OnCtxOpenFolder(object sender, RoutedEventArgs e)
+    {
+        if (_ctxMeeting is { } m)
+            OpenFolderFor(m.Id);
+    }
+
+    private async void OnCtxDelete(object sender, RoutedEventArgs e)
+    {
+        if (_ctxMeeting is { } m)
+            await DeleteIdAsync(m.Id);
     }
 }

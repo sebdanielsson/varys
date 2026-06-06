@@ -36,7 +36,24 @@
                           SelectionChanged="OnMeetingSelected">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:MeetingMeta">
-                            <Grid Padding="2,7" ColumnSpacing="10">
+                            <Grid Padding="2,7" ColumnSpacing="10" RightTapped="OnItemRightTapped">
+                                <Grid.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="Rename" Click="OnCtxRename">
+                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8AC;" /></MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Summarize" Click="OnCtxSummarize">
+                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE8A5;" /></MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Open folder" Click="OnCtxOpenFolder">
+                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE838;" /></MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem Text="Delete" Click="OnCtxDelete">
+                                            <MenuFlyoutItem.Icon><FontIcon Glyph="&#xE74D;" /></MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </Grid.ContextFlyout>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -99,11 +116,15 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock x:Name="DetailTitle" FontSize="20" FontWeight="SemiBold"
-                                   TextWrapping="Wrap" />
+                                   TextWrapping="Wrap" DoubleTapped="OnTitleDoubleTapped"
+                                   ToolTipService.ToolTip="Double-click to rename" />
                         <TextBlock x:Name="DetailSubtitle" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+                        <Button Click="OnRenameMeeting" ToolTipService.ToolTip="Rename meeting">
+                            <FontIcon Glyph="&#xE8AC;" FontSize="16" />
+                        </Button>
                         <Button x:Name="SummarizeBtn" Click="OnSummarizeMeeting"
                                 ToolTipService.ToolTip="Generate notes (summarize)">
                             <FontIcon Glyph="&#xE8A5;" FontSize="16" />
