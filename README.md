@@ -75,12 +75,15 @@ cd app/TranscribeApp
 dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches the sidecar
 ```
 
+The **Summarize** button runs a local LLM (Gemma 4 E2B) over the transcript via Ollama —
+install [Ollama](https://ollama.com) and `ollama pull gemma4:e2b` first.
+
 ## Status
 
 - [x] Phase 0 — scaffold & environment
 - [x] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
 - [x] Phase 2 — FastAPI WebSocket service
-- [~] Phase 3 — WinUI app: supervises sidecar, live Me/Them captions (builds + launches)
-- [ ] Phase 4 — transcript view + export
-- [ ] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
+- [x] Phase 3 — WinUI app: supervises sidecar, live Me/Them captions
+- [~] Phase 4 — transcript view + export (sidecar exporters done; in-app view next)
+- [x] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
 - [ ] Phase 6 — MSIX packaging

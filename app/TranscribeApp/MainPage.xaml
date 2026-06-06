@@ -14,49 +14,89 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Controls -->
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <ComboBox x:Name="LanguageBox" Header="Language" Width="170" SelectedIndex="0">
-                <ComboBoxItem Content="Auto / English" Tag="auto" />
-                <ComboBoxItem Content="English" Tag="en" />
-                <ComboBoxItem Content="Swedish" Tag="sv" />
-            </ComboBox>
-            <Button x:Name="StartStopButton" Content="Start" MinWidth="90"
-                    VerticalAlignment="Bottom" Click="OnStartStopClick"
-                    Style="{StaticResource AccentButtonStyle}" />
-            <TextBlock x:Name="StatusText" Text="idle" VerticalAlignment="Bottom" Margin="4,0,0,6"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        </StackPanel>
+        <!-- Control bar -->
+        <Border CornerRadius="8" Padding="12" Background="{ThemeResource LayerFillColorDefaultBrush}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="LanguageBox" Header="Language" Width="160" SelectedIndex="0"
+                          VerticalAlignment="Bottom">
+                    <ComboBoxItem Content="Auto / English" Tag="auto" />
+                    <ComboBoxItem Content="English" Tag="en" />
+                    <ComboBoxItem Content="Swedish" Tag="sv" />
+                </ComboBox>
+                <Button x:Name="StartStopButton" Grid.Column="1" Content="Start" MinWidth="92"
+                        VerticalAlignment="Bottom" Click="OnStartStopClick"
+                        Style="{StaticResource AccentButtonStyle}" />
+                <Button x:Name="SummarizeButton" Grid.Column="2" Content="Summarize" IsEnabled="False"
+                        VerticalAlignment="Bottom" Click="OnSummarizeClick" />
+                <ProgressRing x:Name="BusyRing" Grid.Column="4" Width="20" Height="20" IsActive="False"
+                              VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                <TextBlock x:Name="StatusText" Grid.Column="5" Text="idle" VerticalAlignment="Bottom"
+                           Margin="0,0,0,6" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Grid>
+        </Border>
 
-        <!-- Transcript (committed finals) -->
-        <Border Grid.Row="1" CornerRadius="8" Padding="8"
+        <!-- Transcript -->
+        <Border Grid.Row="1" CornerRadius="8" Padding="4"
                 Background="{ThemeResource LayerFillColorDefaultBrush}">
-            <ListView x:Name="Captions" ItemsSource="{x:Bind Items}" SelectionMode="None">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:CaptionItem">
-                        <Grid ColumnSpacing="10" Padding="4,3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{x:Bind Speaker}" Foreground="{x:Bind Color}"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap"
-                                       IsTextSelectionEnabled="True" />
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <Grid>
+                <ListView x:Name="Captions" ItemsSource="{x:Bind Items}" SelectionMode="None" Padding="6">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:CaptionItem">
+                            <Grid ColumnSpacing="10" Padding="2,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{x:Bind Color}" CornerRadius="10" Height="22"
+                                        Padding="9,0" MinWidth="56" VerticalAlignment="Top">
+                                    <TextBlock Text="{x:Bind Speaker}" Foreground="White" FontSize="12"
+                                               FontWeight="SemiBold" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <!-- Empty state -->
+                <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Spacing="8">
+                    <FontIcon Glyph="&#xE720;" FontSize="34"
+                              Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <TextBlock Text="Press Start to begin transcribing" HorizontalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="Your microphone is &quot;Me&quot;; system audio is &quot;Them&quot;."
+                               FontSize="12" HorizontalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Live partial line -->
         <TextBlock x:Name="PartialText" Grid.Row="2" FontStyle="Italic" TextWrapping="Wrap"
                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
+        <!-- Summary -->
+        <Expander x:Name="SummaryExpander" Grid.Row="3" Header="Summary" Visibility="Collapsed"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+            <TextBlock x:Name="SummaryText" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+        </Expander>
+
         <!-- Diagnostics / last log line -->
-        <TextBlock x:Name="LogText" Grid.Row="3" FontSize="11" TextTrimming="CharacterEllipsis"
+        <TextBlock x:Name="LogText" Grid.Row="4" FontSize="11" TextTrimming="CharacterEllipsis"
                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
     </Grid>
 </Page>

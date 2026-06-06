@@ -96,6 +96,12 @@ public sealed class SidecarClient : IAsyncDisposable
         return await res.Content.ReadAsStringAsync();
     }
 
+    public async Task<string> SummarizeAsync()
+    {
+        var res = await _http.PostAsync($"{BaseUrl}/session/summarize", null);
+        return await res.Content.ReadAsStringAsync();
+    }
+
     private async Task<bool> IsHealthyAsync(CancellationToken ct)
     {
         try
