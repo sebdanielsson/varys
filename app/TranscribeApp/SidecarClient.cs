@@ -40,6 +40,7 @@ public sealed class SidecarClient : IAsyncDisposable
     private Process? _process;
     private ClientWebSocket? _ws;
     private CancellationTokenSource? _wsCts;
+    private readonly JobObject _job = new();
 
     public event Action<TranscriptEvent>? Event;
     public event Action<string>? Log;
@@ -50,24 +51,34 @@ public sealed class SidecarClient : IAsyncDisposable
         if (!await IsHealthyAsync(ct))
         {
             var dir = LocateSidecarDir();
-            Log?.Invoke($"launching sidecar from {dir}");
+            var venvPython = Path.Combine(dir, ".venv", "Scripts", "python.exe");
             var psi = new ProcessStartInfo
             {
-                FileName = "uv",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WorkingDirectory = dir,
             };
-            psi.ArgumentList.Add("run");
-            psi.ArgumentList.Add("python");
+            if (File.Exists(venvPython))
+            {
+                psi.FileName = venvPython;   // one process, no `uv` child-spawn / PATH dependency
+            }
+            else
+            {
+                psi.FileName = "uv";
+                psi.ArgumentList.Add("run");
+                psi.ArgumentList.Add("python");
+            }
             psi.ArgumentList.Add("-m");
             psi.ArgumentList.Add("transcribe_sidecar");
+            Log?.Invoke($"launching sidecar: {psi.FileName}");
+
             _process = new Process { StartInfo = psi, EnableRaisingEvents = true };
             _process.OutputDataReceived += (_, e) => { if (e.Data != null) Log?.Invoke(e.Data); };
             _process.ErrorDataReceived += (_, e) => { if (e.Data != null) Log?.Invoke(e.Data); };
             _process.Start();
+            try { _job.AddProcess(_process); } catch { /* job assignment best-effort */ }
             _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
 
@@ -212,6 +223,7 @@ public sealed class SidecarClient : IAsyncDisposable
         }
         catch { }
         try { if (_process is { HasExited: false }) _process.Kill(entireProcessTree: true); } catch { }
+        try { _job.Dispose(); } catch { }   // backstop: kills the sidecar if it somehow survived
         _http.Dispose();
     }
 }
