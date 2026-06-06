@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Env / secrets
+.env
+
+# Model & HF caches
+.cache/
+*.nemo
+
+# Output
+sidecar/transcripts/
+sidecar/samples/
+
+# Windows / Visual Studio (WinUI app, Phase 3)
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user

@@ -1,0 +1,38 @@
+[project]
+name = "transcribe-sidecar"
+version = "0.0.1"
+description = "Local meeting transcription sidecar (Parakeet-TDT ASR + Ollama summary)."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "torch",
+    "torchaudio",
+    "transformers",
+    "accelerate>=0.34",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+    "numpy>=1.26",
+    "soundfile>=0.12",
+    "soundcard>=0.4.3",
+    "soxr>=0.5",
+    "silero-vad>=5.1",
+    "librosa>=0.10",
+    "pydantic-settings>=2.4",
+]
+
+# Application project: install dependencies into .venv but don't build/install
+# this project itself (run it via `uv run python -m transcribe_sidecar`).
+[tool.uv]
+package = false
+
+# Pull PyTorch from the CUDA 12.8 index (Turing sm_75 + Ada). The TDT decoder for
+# parakeet-tdt-0.6b-v3 is not yet in a stable transformers release, so use git main.
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+transformers = { git = "https://github.com/huggingface/transformers" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
