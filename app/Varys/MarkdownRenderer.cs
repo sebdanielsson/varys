@@ -9,11 +9,12 @@ public static class MarkdownRenderer
     private static readonly MarkdownPipeline Pipeline =
         new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-    public static string ToHtml(string? markdown, ElementTheme theme)
+    public static string ToHtml(string? markdown, ElementTheme theme, string? background = null)
     {
         var body = Markdown.ToHtml(markdown ?? "", Pipeline);
         var dark = theme == ElementTheme.Dark;
         var scheme = dark ? "dark" : "light";
+        var bg = background ?? "transparent";
         var fg = dark ? "#E6E6E6" : "#1A1A1A";
         var muted = dark ? "#9AA0A6" : "#5A5A5A";
         var border = dark ? "#3A3A3A" : "#D6D6D6";
@@ -22,7 +23,7 @@ public static class MarkdownRenderer
         var css = $@"
 <style>
   :root{{color-scheme:{scheme};}}
-  html,body{{margin:0;padding:0;background:transparent;color:{fg};
+  html,body{{margin:0;padding:0;background:{bg};color:{fg};
     font-family:'Segoe UI Variable Text','Segoe UI',sans-serif;font-size:14px;line-height:1.5;
     word-wrap:break-word;overflow-x:hidden;}}
   h1,h2,h3,h4{{margin:.7em 0 .3em;font-weight:600;line-height:1.25;}}

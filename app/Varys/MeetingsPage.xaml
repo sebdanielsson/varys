@@ -139,7 +139,7 @@
                 </Grid>
 
                 <Border Grid.Row="1" x:Name="SummaryCard" Visibility="Collapsed" CornerRadius="8"
-                        Padding="12" Background="{ThemeResource LayerFillColorDefaultBrush}">
+                        Padding="12" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                     <Grid RowSpacing="6">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -165,7 +165,7 @@
                 </Border>
 
                 <Border Grid.Row="2" CornerRadius="8" Padding="4"
-                        Background="{ThemeResource LayerFillColorDefaultBrush}">
+                        Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

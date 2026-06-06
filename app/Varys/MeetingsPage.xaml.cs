@@ -6,6 +6,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
 
@@ -131,12 +132,19 @@ public sealed partial class MeetingsPage : Page
         try
         {
             await NotesWeb.EnsureCoreWebView2Async();
-            // Re-assert transparency now that the core is initialized — setting it only in the
-            // constructor (before EnsureCoreWebView2Async) doesn't reliably stick, leaving an
-            // opaque box that reads as a card-in-a-card. Transparent lets the markdown sit
-            // directly on the Notes card surface.
-            NotesWeb.DefaultBackgroundColor = Colors.Transparent;
-            NotesWeb.NavigateToString(MarkdownRenderer.ToHtml(_summaryMd, ActualTheme));
+            // WinUI 3's WebView2 doesn't reliably honor a transparent background (it composites
+            // opaquely over its own base, so a "transparent" WebView wouldn't pick up the card's
+            // Mica-blended color anyway). Instead, paint the WebView — and the HTML body — with the
+            // card's *opaque* surface color so the preview is seamless with the card. SummaryCard
+            // uses an opaque ThemeResource brush, so its resolved .Color tracks light/dark, and we
+            // re-render on ActualThemeChanged.
+            var surface = (SummaryCard.Background as SolidColorBrush)?.Color
+                ?? (ActualTheme == ElementTheme.Dark
+                        ? Windows.UI.Color.FromArgb(0xFF, 0x28, 0x28, 0x28)
+                        : Windows.UI.Color.FromArgb(0xFF, 0xF9, 0xF9, 0xF9));
+            NotesWeb.DefaultBackgroundColor = surface;
+            var bg = $"#{surface.R:X2}{surface.G:X2}{surface.B:X2}";
+            NotesWeb.NavigateToString(MarkdownRenderer.ToHtml(_summaryMd, ActualTheme, bg));
         }
         catch
         {
