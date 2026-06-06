@@ -38,3 +38,10 @@ def summarize(transcript_markdown: str, *, base_url: str, model: str) -> str:
     resp = httpx.post(f"{base_url}/api/chat", json=payload, timeout=600)
     resp.raise_for_status()
     return (resp.json().get("message", {}).get("content") or "").strip()
+
+
+def embed(texts: list[str], *, base_url: str, model: str) -> list[list[float]]:
+    """Embed a batch of texts (for semantic search). Requires `ollama pull <model>`."""
+    resp = httpx.post(f"{base_url}/api/embed", json={"model": model, "input": texts}, timeout=300)
+    resp.raise_for_status()
+    return resp.json().get("embeddings", [])

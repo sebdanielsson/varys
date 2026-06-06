@@ -124,7 +124,11 @@ class Session:
             if tail:
                 self._finalize(tail)
         self.running = False
-        paths = self.transcript.save(self._s.transcript_dir) if self.transcript.utterances else {}
-        self._emit({"type": "status", "state": "stopped", "files": paths,
+        meta = {}
+        if self.transcript.utterances:
+            from . import library
+            meta = library.save_meeting(self.transcript, settings=self._s,
+                                        language=self._s.language, engine=self.engine_label)
+        self._emit({"type": "status", "state": "stopped", "meeting": meta,
                     "utterances": len(self.transcript.utterances)})
-        return paths
+        return meta

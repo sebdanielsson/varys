@@ -1,8 +1,10 @@
 """Runtime configuration, overridable via environment (prefix TRANSCRIBE_) or .env."""
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -41,9 +43,12 @@ class Settings(BaseSettings):
     # Summary (Phase 5) — verify exact Ollama tag before use
     ollama_url: str = "http://127.0.0.1:11434"
     summary_model: str = "gemma4:e2b"
+    embed_model: str = "embeddinggemma"   # multilingual embeddings for semantic search
 
     # Storage
-    transcript_dir: str = "transcripts"
+    transcript_dir: str = "transcripts"   # console runner output (legacy)
+    data_dir: str = Field(default_factory=lambda: os.path.join(
+        os.environ.get("LOCALAPPDATA") or os.path.expanduser("~/.local/share"), "Transcribe"))
 
 
 @lru_cache

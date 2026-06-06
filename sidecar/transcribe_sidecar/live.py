@@ -98,8 +98,8 @@ def run_live(s: Settings) -> None:
             print(f"{ev['engine']}  |  Me <- {ev['mic']}  |  Them <- {ev['loopback']}")
             print("Listening... press Ctrl-C to stop.\n")
         elif kind == "status" and ev.get("state") == "stopped":
-            files = ev.get("files") or {}
-            print(f"\nsaved transcript: {files['md']}" if files else "\nno speech captured.")
+            m = ev.get("meeting") or {}
+            print(f"\nsaved meeting: {m.get('id')}" if m else "\nno speech captured.")
 
     print("loading model...")
     session = Session(s, on_event=sink)

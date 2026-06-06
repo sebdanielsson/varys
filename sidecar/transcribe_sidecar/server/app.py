@@ -8,11 +8,11 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
+from .. import library
 from ..config import get_settings
 from ..session import Session
 from ..summary.ollama_client import available as ollama_available, summarize
@@ -81,40 +81,98 @@ async def session_stop() -> dict:
     sess = app.state.session
     if not sess or not sess.running:
         return {"status": "idle"}
-    paths = await asyncio.get_running_loop().run_in_executor(None, sess.stop)
-    app.state.last_transcript = sess.transcript
+    meta = await asyncio.get_running_loop().run_in_executor(None, sess.stop)
     app.state.session = None
-    return {"status": "stopped", "files": paths}
+    if meta.get("id"):
+        asyncio.create_task(_index_async(meta["id"]))   # background semantic indexing
+    return {"status": "stopped", "meeting": meta}
+
+
+async def _index_async(mid: str) -> None:
+    """Best-effort background semantic indexing (no-op if Ollama/model unavailable)."""
+    s = get_settings()
+    try:
+        await asyncio.get_running_loop().run_in_executor(None, lambda: library.index_meeting(s, mid))
+    except Exception:
+        logger.info("semantic indexing skipped for %s", mid, exc_info=True)
+
+
+class RenameRequest(BaseModel):
+    title: str
+
+
+@app.get("/meetings")
+def meetings_list() -> dict:
+    return {"meetings": library.list_meetings(get_settings())}
+
+
+@app.get("/meetings/{mid}")
+def meeting_get(mid: str) -> dict:
+    return library.load_meeting(get_settings(), mid) or {"status": "not_found"}
+
+
+@app.patch("/meetings/{mid}")
+def meeting_rename(mid: str, req: RenameRequest) -> dict:
+    return {"status": "ok" if library.rename_meeting(get_settings(), mid, req.title) else "not_found"}
+
+
+@app.delete("/meetings/{mid}")
+def meeting_delete(mid: str) -> dict:
+    return {"status": "deleted" if library.delete_meeting(get_settings(), mid) else "not_found"}
+
+
+@app.post("/meetings/{mid}/summarize")
+async def meeting_summarize(mid: str) -> dict:
+    s = get_settings()
+    m = library.load_meeting(s, mid)
+    if not m:
+        return {"status": "not_found"}
+    if not ollama_available(s.ollama_url):
+        return {"status": "error", "message": "Ollama is not reachable; start it and pull the model."}
+    loop = asyncio.get_running_loop()
+    try:
+        summary = await loop.run_in_executor(
+            None, lambda: summarize(m["transcript_md"], base_url=s.ollama_url, model=s.summary_model))
+    except Exception as ex:
+        return {"status": "error", "message": str(ex)}
+    library.set_summary(s, mid, summary)
+    _broadcast_threadsafe({"type": "summary", "meeting_id": mid, "text": summary})
+    return {"status": "ok", "summary": summary, "model": s.summary_model}
+
+
+@app.post("/meetings/{mid}/index")
+async def meeting_index(mid: str) -> dict:
+    s = get_settings()
+    try:
+        ok = await asyncio.get_running_loop().run_in_executor(None, lambda: library.index_meeting(s, mid))
+    except Exception as ex:
+        return {"status": "error", "message": str(ex)}
+    return {"status": "ok" if ok else "skipped"}
+
+
+@app.get("/search")
+async def search(q: str = "", mode: str = "keyword", limit: int = 20) -> dict:
+    s = get_settings()
+    loop = asyncio.get_running_loop()
+    if mode == "semantic":
+        if not ollama_available(s.ollama_url):
+            return {"status": "error", "message": "Ollama is not reachable for semantic search."}
+        try:
+            hits = await loop.run_in_executor(None, lambda: library.search_semantic(s, q, limit))
+        except Exception as ex:
+            return {"status": "error", "message": str(ex)}
+    else:
+        hits = await loop.run_in_executor(None, lambda: library.search_keyword(s, q, limit))
+    return {"status": "ok", "mode": mode, "hits": hits}
 
 
 @app.post("/session/summarize")
 async def session_summarize() -> dict:
-    sess = app.state.session
-    transcript = (sess.transcript if sess and sess.transcript.utterances
-                  else app.state.last_transcript)
-    if transcript is None or not transcript.utterances:
+    """Compat shim: summarize the most recent meeting."""
+    metas = library.list_meetings(get_settings())
+    if not metas:
         return {"status": "no_transcript"}
-
-    s = get_settings()
-    if not ollama_available(s.ollama_url):
-        return {"status": "error", "message": "Ollama is not reachable; start it and pull the model."}
-
-    md = transcript.to_markdown()
-    loop = asyncio.get_running_loop()
-    try:
-        summary = await loop.run_in_executor(
-            None, lambda: summarize(md, base_url=s.ollama_url, model=s.summary_model))
-    except Exception as ex:  # e.g. model not pulled
-        return {"status": "error", "message": str(ex)}
-
-    _broadcast_threadsafe({"type": "summary", "text": summary})
-    try:
-        sp = Path(s.transcript_dir) / f"{transcript.title}.summary.md"
-        sp.parent.mkdir(parents=True, exist_ok=True)
-        sp.write_text(summary, encoding="utf-8")
-    except Exception:
-        logger.exception("failed to save summary")
-    return {"status": "ok", "summary": summary, "model": s.summary_model}
+    return await meeting_summarize(metas[0]["id"])
 
 
 @app.websocket("/ws")
