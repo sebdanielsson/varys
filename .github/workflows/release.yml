@@ -5,24 +5,31 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
-# NOTE: this publishes the WinUI app (self-contained win-x64). The Python sidecar
-# is not yet bundled (Phase 6: bundle via PyInstaller / MSIX), so the zip is the
-# app shell + a build-verification artifact for now.
+# Publishes a self-contained win-x64 build: the WinUI app + the sidecar source +
+# uv.exe. On first launch the app runs `uv sync` to build the Python environment
+# (downloads PyTorch etc.) into %LOCALAPPDATA%\Varys\venv. Models download on first
+# use; Ollama (for summaries + semantic search) is a separate prerequisite.
 jobs:
   release:
     runs-on: windows-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
+      - uses: astral-sh/setup-uv@v8
       - name: Publish (self-contained win-x64)
         run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -o publish
+      - name: Bundle sidecar + uv
+        shell: pwsh
+        run: |
+          Copy-Item sidecar publish/sidecar -Recurse
+          Copy-Item (Get-Command uv).Source publish/uv.exe
       - name: Zip
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ github.ref_name }}-win-x64.zip
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: Varys-*.zip

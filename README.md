@@ -71,7 +71,7 @@ WinUI 3 (Windows App SDK 2.1.3), unpackaged + self-contained. Launches and super
 the sidecar, then shows live Me/Them captions over the WebSocket.
 
 ```powershell
-cd app/VarysApp
+cd app/Varys
 dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches the sidecar
 ```
 
@@ -98,6 +98,14 @@ The app writes a combined log — its own messages plus the sidecar's stdout/std
 Open it from the app via the **Open logs** link (bottom-right). Running the sidecar
 standalone (`uv run python -m transcribe_sidecar`) logs to the console instead.
 
+## Releases (standalone)
+
+The `Release` workflow (push a `v*` tag) publishes a self-contained **win-x64 zip**: the
+app + the sidecar source + `uv.exe`. On first launch the app runs `uv sync` to build the
+Python environment into `%LOCALAPPDATA%\Varys\venv` (downloads PyTorch etc. — a few
+minutes, once). Models download on first use; **Ollama** (for summaries + semantic
+search) is a separate prerequisite. Full MSIX packaging is the remaining step.
+
 ## Status
 
 - [x] Phase 0 — scaffold & environment
@@ -107,4 +115,4 @@ standalone (`uv run python -m transcribe_sidecar`) logs to the console instead.
 - [x] Phase 4 — in-app transcript view (Meetings tab); export via Open folder
 - [x] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
 - [x] Meeting library + keyword/semantic search (NavigationView UI)
-- [ ] Phase 6 — MSIX packaging
+- [~] Phase 6 — standalone win-x64 release (app + sidecar + uv, first-run `uv sync`); MSIX next
