@@ -2,6 +2,7 @@
 
 Run:  uv run --with cairosvg --with pillow python app/branding/gen_assets.py
 """
+import struct
 from pathlib import Path
 
 import cairosvg
@@ -39,13 +40,28 @@ render("LockScreenLogo.scale-200.png", 48)
 composite("Wide310x150Logo.scale-200.png", 620, 300, 248)
 composite("SplashScreen.scale-200.png", 1240, 600, 360)
 
-# Multi-size .ico for the window / title bar / taskbar.
-base = ASSETS / "_icobase.png"
-cairosvg.svg2png(url=str(SVG), write_to=str(base), output_width=256, output_height=256)
-Image.open(base).save(
-    ASSETS / "AppIcon.ico", format="ICO",
-    sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
-)
-base.unlink(missing_ok=True)
+# Multi-size .ico with each frame rendered DIRECTLY from the SVG (crisp at every
+# size, incl. the small title-bar sizes used at high DPI). Frames are PNG-encoded.
+def build_ico(out_path: Path) -> None:
+    sizes = [16, 20, 24, 28, 32, 40, 48, 64, 128, 256]
+    frames = []
+    for s in sizes:
+        tmp = ASSETS / f"_ico_{s}.png"
+        cairosvg.svg2png(url=str(SVG), write_to=str(tmp), output_width=s, output_height=s)
+        frames.append((s, tmp.read_bytes()))
+        tmp.unlink(missing_ok=True)
+    header = struct.pack("<HHH", 0, 1, len(frames))
+    entries = bytearray()
+    data = bytearray()
+    offset = 6 + 16 * len(frames)
+    for s, png in frames:
+        wh = 0 if s >= 256 else s
+        entries += struct.pack("<BBBBHHII", wh, wh, 0, 0, 1, 32, len(png), offset)
+        data += png
+        offset += len(png)
+    out_path.write_bytes(header + bytes(entries) + bytes(data))
+
+
+build_ico(ASSETS / "AppIcon.ico")
 
 print("assets generated in", ASSETS)
