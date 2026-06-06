@@ -55,11 +55,21 @@ uv run python -m transcribe_sidecar.live --lang sv  # Swedish (KB-Whisper, force
 Speak (shows as `[  Me]`) and let meeting audio play (`[Them]`). `Ctrl-C` saves the
 transcript (JSON / Markdown / SRT) to `sidecar/transcripts/`.
 
+## Server (Phase 2)
+
+```powershell
+cd sidecar
+uv run python -m transcribe_sidecar          # FastAPI on http://127.0.0.1:8765
+```
+
+- `GET /health` · `POST /session/start` `{ "language": "auto|en|sv" }` · `POST /session/stop`
+- `WS /ws` streams events: `status`, `partial`, `final` (`{speaker, text, t0, t1, language}`).
+
 ## Status
 
 - [x] Phase 0 — scaffold & environment
-- [~] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
-- [ ] Phase 2 — FastAPI WebSocket service
+- [x] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
+- [x] Phase 2 — FastAPI WebSocket service
 - [ ] Phase 3 — WinUI shell + live captions
 - [ ] Phase 4 — transcript view + export
 - [ ] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
