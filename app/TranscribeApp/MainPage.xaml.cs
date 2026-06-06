@@ -156,5 +156,26 @@ public sealed partial class MainPage : Page
         });
     }
 
-    private void OnLog(string msg) => DispatcherQueue.TryEnqueue(() => LogText.Text = msg);
+    private void OnLog(string msg)
+    {
+        AppLog.Write(msg);
+        DispatcherQueue.TryEnqueue(() => LogText.Text = msg);
+    }
+
+    private void OnOpenLogsClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(AppLog.Dir);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = AppLog.Dir,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            DispatcherQueue.TryEnqueue(() => LogText.Text = ex.Message);
+        }
+    }
 }

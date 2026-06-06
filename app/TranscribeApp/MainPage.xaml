@@ -95,8 +95,16 @@
             <TextBlock x:Name="SummaryText" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
         </Expander>
 
-        <!-- Diagnostics / last log line -->
-        <TextBlock x:Name="LogText" Grid.Row="4" FontSize="11" TextTrimming="CharacterEllipsis"
-                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+        <!-- Diagnostics: last log line + a link to the full log file -->
+        <Grid Grid.Row="4" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="LogText" FontSize="11" TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <HyperlinkButton x:Name="OpenLogsButton" Grid.Column="1" Content="Open logs" FontSize="12"
+                             Padding="6,2" Click="OnOpenLogsClick" />
+        </Grid>
     </Grid>
 </Page>

@@ -78,6 +78,17 @@ dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches t
 The **Summarize** button runs a local LLM (Gemma 4 E2B) over the transcript via Ollama —
 install [Ollama](https://ollama.com) and `ollama pull gemma4:e2b` first.
 
+## Logs
+
+The app writes a combined log — its own messages plus the sidecar's stdout/stderr — to:
+
+```
+%LOCALAPPDATA%\Transcribe\logs\app.log
+```
+
+Open it from the app via the **Open logs** link (bottom-right). Running the sidecar
+standalone (`uv run python -m transcribe_sidecar`) logs to the console instead.
+
 ## Status
 
 - [x] Phase 0 — scaffold & environment
