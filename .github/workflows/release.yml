@@ -15,11 +15,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/checkout@v6.0.3
+      - uses: actions/setup-dotnet@v5.3.0
         with:
           dotnet-version: "10.0.x"
-      - uses: astral-sh/setup-uv@v8
+      - uses: astral-sh/setup-uv@v8.2.0
       - name: Publish (self-contained win-x64)
         run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -o publish
       - name: Bundle sidecar + uv
@@ -30,6 +30,6 @@ jobs:
       - name: Zip
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ github.ref_name }}-win-x64.zip
       - name: Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.0
         with:
           files: Varys-*.zip
