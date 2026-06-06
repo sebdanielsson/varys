@@ -1,24 +1,20 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
 using WinRT.Interop;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace TranscribeApp;
 
 /// <summary>
-/// The application window. Hosts a Frame that displays pages; owns the sidecar
-/// client and kills the sidecar when the window closes.
+/// The application window: a NavigationView hosting the Live and Meetings pages.
+/// Disposes the app-wide sidecar client (killing the sidecar) on close.
 /// </summary>
 public sealed partial class MainWindow : Window
 {
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
-
-    private readonly SidecarClient _client = new();
 
     public MainWindow()
     {
@@ -27,17 +23,21 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
-
         AppWindow.SetIcon("Assets/AppIcon.ico");
-        ResizeToLogical(660, 860);
+        ResizeToLogical(820, 900);
 
         Closed += OnClosed;
-
-        // Navigate the root frame to the main page, handing it the sidecar client.
-        RootFrame.Navigate(typeof(MainPage), _client);
+        ContentFrame.Navigate(typeof(LivePage));
     }
 
-    /// <summary>Resize to a logical (DPI-independent) size.</summary>
+    private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        var tag = (args.SelectedItem as NavigationViewItem)?.Tag as string;
+        var target = tag == "meetings" ? typeof(MeetingsPage) : typeof(LivePage);
+        if (ContentFrame.CurrentSourcePageType != target)
+            ContentFrame.Navigate(target);
+    }
+
     private void ResizeToLogical(int width, int height)
     {
         var hwnd = WindowNative.GetWindowHandle(this);
@@ -48,6 +48,6 @@ public sealed partial class MainWindow : Window
 
     private async void OnClosed(object sender, WindowEventArgs args)
     {
-        await _client.DisposeAsync();
+        await App.Sidecar.DisposeAsync();
     }
 }

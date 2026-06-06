@@ -1,42 +1,25 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Text.Json;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace TranscribeApp;
 
-/// <summary>
-/// Main content page: controls, the live transcript (Me/Them badges), the updating
-/// partial line, and the post-meeting summary. Drives the <see cref="SidecarClient"/>.
-/// </summary>
-public sealed partial class MainPage : Page
+/// <summary>Live transcription: controls, the running Me/Them transcript, partial line, summary.</summary>
+public sealed partial class LivePage : Page
 {
     public ObservableCollection<CaptionItem> Items { get; } = new();
 
-    private readonly SolidColorBrush _meBrush = new(ColorHelper.FromArgb(255, 0x1E, 0x88, 0xE5));   // blue
-    private readonly SolidColorBrush _themBrush = new(ColorHelper.FromArgb(255, 0x43, 0xA0, 0x47)); // green
-
-    private SidecarClient _client = null!;
     private bool _running;
 
-    public MainPage()
+    public LivePage()
     {
         InitializeComponent();
-    }
-
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        if (e.Parameter is SidecarClient client)
-        {
-            _client = client;
-            _client.Event += OnEvent;
-            _client.Log += OnLog;
-        }
+        NavigationCacheMode = NavigationCacheMode.Required;   // keep state across tab switches
+        App.Sidecar.Event += OnEvent;
+        App.Sidecar.Log += OnLog;
     }
 
     private async void OnStartStopClick(object sender, RoutedEventArgs e)
@@ -52,17 +35,17 @@ public sealed partial class MainPage : Page
                 SummaryExpander.Visibility = Visibility.Collapsed;
                 BusyRing.IsActive = true;
                 StatusText.Text = "starting sidecar…";
-                await _client.StartSidecarAsync();
+                await App.Sidecar.StartSidecarAsync();
                 var lang = (LanguageBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "auto";
                 StatusText.Text = "loading model…";
-                await _client.StartSessionAsync(lang);
+                await App.Sidecar.StartSessionAsync(lang);
                 _running = true;
                 StartStopButton.Content = "Stop";
             }
             else
             {
                 StatusText.Text = "stopping…";
-                await _client.StopSessionAsync();
+                await App.Sidecar.StopSessionAsync();
                 _running = false;
                 StartStopButton.Content = "Start";
                 PartialText.Text = "";
@@ -88,11 +71,9 @@ public sealed partial class MainPage : Page
         StatusText.Text = "summarizing…";
         try
         {
-            var json = await _client.SummarizeAsync();
-            using var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(await App.Sidecar.SummarizeAsync());
             var root = doc.RootElement;
-            var status = root.GetProperty("status").GetString();
-            if (status == "ok")
+            if (root.GetProperty("status").GetString() == "ok")
             {
                 SummaryText.Text = root.GetProperty("summary").GetString() ?? "";
                 SummaryExpander.Visibility = Visibility.Visible;
@@ -101,7 +82,7 @@ public sealed partial class MainPage : Page
             }
             else
             {
-                var msg = root.TryGetProperty("message", out var m) ? m.GetString() : status;
+                var msg = root.TryGetProperty("message", out var m) ? m.GetString() : "no transcript";
                 StatusText.Text = $"summary: {msg}";
             }
         }
@@ -129,25 +110,15 @@ public sealed partial class MainPage : Page
                 case "final":
                     PartialText.Text = "";
                     EmptyState.Visibility = Visibility.Collapsed;
-                    Items.Add(new CaptionItem
-                    {
-                        Speaker = ev.Speaker ?? "",
-                        Text = ev.Text ?? "",
-                        Color = ev.Speaker == "Me" ? _meBrush : _themBrush,
-                    });
+                    Items.Add(CaptionItem.For(ev.Speaker ?? "", ev.Text ?? ""));
                     Captions.ScrollIntoView(Items[^1]);
                     SummarizeButton.IsEnabled = true;
-                    break;
-                case "summary":
-                    SummaryText.Text = ev.Text ?? "";
-                    SummaryExpander.Visibility = Visibility.Visible;
-                    SummaryExpander.IsExpanded = true;
                     break;
                 case "status":
                     StatusText.Text = ev.State switch
                     {
                         "listening" => $"listening · {ev.Engine}",
-                        "stopped" => "stopped",
+                        "stopped" => "saved · stopped",
                         "idle" => "idle",
                         _ => ev.State ?? "",
                     };

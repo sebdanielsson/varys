@@ -21,6 +21,9 @@ namespace TranscribeApp;
 /// </summary>
 public partial class App : Application
 {
+    /// <summary>The single app-wide sidecar client, shared by all pages.</summary>
+    public static SidecarClient Sidecar { get; } = new();
+
     private Window? _window;
     
     /// <summary>

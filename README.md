@@ -78,6 +78,15 @@ dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches t
 The **Summarize** button runs a local LLM (Gemma 4 E2B) over the transcript via Ollama —
 install [Ollama](https://ollama.com) and `ollama pull gemma4:e2b` first.
 
+## Meeting library & search (Meetings tab)
+
+Every meeting is saved as its own folder under
+`%LOCALAPPDATA%\Transcribe\meetings\<id>\` (`meta.json`, `transcript.{json,md,srt}`,
+`summary.md`, `index.json`). The **Meetings** tab lists them with transcript + notes,
+and search is **keyword** or **semantic** — local multilingual embeddings via Ollama
+`embeddinggemma`, so you can find what someone said even months later. Pull the
+embedder first: `ollama pull embeddinggemma`.
+
 ## Logs
 
 The app writes a combined log — its own messages plus the sidecar's stdout/stderr — to:
@@ -95,6 +104,7 @@ standalone (`uv run python -m transcribe_sidecar`) logs to the console instead.
 - [x] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
 - [x] Phase 2 — FastAPI WebSocket service
 - [x] Phase 3 — WinUI app: supervises sidecar, live Me/Them captions
-- [~] Phase 4 — transcript view + export (sidecar exporters done; in-app view next)
+- [x] Phase 4 — in-app transcript view (Meetings tab); export via Open folder
 - [x] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
+- [x] Meeting library + keyword/semantic search (NavigationView UI)
 - [ ] Phase 6 — MSIX packaging

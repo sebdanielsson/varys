@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -80,7 +81,8 @@ public sealed class SidecarClient : IAsyncDisposable
                 throw new TimeoutException("sidecar did not become healthy in time");
         }
         Log?.Invoke("sidecar healthy");
-        await ConnectWsAsync();
+        if (_ws is not { State: WebSocketState.Open })
+            await ConnectWsAsync();
     }
 
     public async Task<string> StartSessionAsync(string language)
@@ -101,6 +103,39 @@ public sealed class SidecarClient : IAsyncDisposable
         var res = await _http.PostAsync($"{BaseUrl}/session/summarize", null);
         return await res.Content.ReadAsStringAsync();
     }
+
+    // --- meeting library ---
+
+    public async Task<List<MeetingMeta>> GetMeetingsAsync()
+    {
+        var json = await _http.GetStringAsync($"{BaseUrl}/meetings");
+        return JsonSerializer.Deserialize<MeetingsResponse>(json, JsonOpts)?.Meetings ?? new();
+    }
+
+    public async Task<MeetingDetail?> GetMeetingAsync(string id)
+    {
+        var json = await _http.GetStringAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}");
+        return JsonSerializer.Deserialize<MeetingDetail>(json, JsonOpts);
+    }
+
+    public async Task<SearchResponse> SearchAsync(string query, string mode)
+    {
+        var url = $"{BaseUrl}/search?q={Uri.EscapeDataString(query)}&mode={mode}";
+        return JsonSerializer.Deserialize<SearchResponse>(await _http.GetStringAsync(url), JsonOpts) ?? new();
+    }
+
+    public async Task<string> SummarizeMeetingAsync(string id)
+    {
+        var res = await _http.PostAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}/summarize", null);
+        return await res.Content.ReadAsStringAsync();
+    }
+
+    public Task DeleteMeetingAsync(string id) =>
+        _http.DeleteAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}");
+
+    public Task RenameMeetingAsync(string id, string title) =>
+        _http.PatchAsync($"{BaseUrl}/meetings/{Uri.EscapeDataString(id)}",
+            new StringContent(JsonSerializer.Serialize(new { title }), Encoding.UTF8, "application/json"));
 
     private async Task<bool> IsHealthyAsync(CancellationToken ct)
     {
