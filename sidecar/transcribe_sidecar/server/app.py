@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
         app.state.session.stop()
 
 
-app = FastAPI(title="Transcribe Sidecar", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Varys Sidecar", version="0.1.0", lifespan=lifespan)
 app.state.session = None
 app.state.clients = set()
 app.state.loop = None

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>
 /// A Windows Job Object configured with KILL_ON_JOB_CLOSE: every process added to it

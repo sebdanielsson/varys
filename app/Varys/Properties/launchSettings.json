@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "TranscribeApp (Package)": {
+    "Varys (Package)": {
       "commandName": "MsixPackage"
     },
-    "TranscribeApp (Unpackaged)": {
+    "Varys (Unpackaged)": {
       "commandName": "Project"
     }
   }

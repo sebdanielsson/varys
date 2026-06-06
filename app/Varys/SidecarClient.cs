@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>One transcription event from the sidecar WebSocket.</summary>
 public sealed class TranscriptEvent

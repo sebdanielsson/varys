@@ -1,4 +1,4 @@
-# Transcribe — local AI meeting transcription
+# Varys — local AI meeting transcription
 
 Real-time, fully local transcription of online meetings (Rocket.Chat, Jitsi, etc.)
 on Windows, using NVIDIA **Parakeet-TDT** for speech-to-text and a local LLM for
@@ -15,7 +15,7 @@ WinUI 3 app  ◄── WebSocket (live text) ──►  Python sidecar
 ```
 
 - **Two capture streams:** microphone → **"Me"**, system loopback → **"Them"**.
-  Transcribed separately (clean speaker split, no echo doubling).
+  Varysd separately (clean speaker split, no echo doubling).
 - **VAD-chunked near-real-time:** each utterance is transcribed at the silence
   boundary (~1–3 s latency) with timestamps and punctuation.
 - **Sequential GPU use:** ASR during the meeting, summary LLM afterwards.
@@ -71,7 +71,7 @@ WinUI 3 (Windows App SDK 2.1.3), unpackaged + self-contained. Launches and super
 the sidecar, then shows live Me/Them captions over the WebSocket.
 
 ```powershell
-cd app/TranscribeApp
+cd app/VarysApp
 dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches the sidecar
 ```
 
@@ -81,7 +81,7 @@ install [Ollama](https://ollama.com) and `ollama pull gemma4:e2b` first.
 ## Meeting library & search (Meetings tab)
 
 Every meeting is saved as its own folder under
-`%LOCALAPPDATA%\Transcribe\meetings\<id>\` (`meta.json`, `transcript.{json,md,srt}`,
+`%LOCALAPPDATA%\Varys\meetings\<id>\` (`meta.json`, `transcript.{json,md,srt}`,
 `summary.md`, `index.json`). The **Meetings** tab lists them with transcript + notes,
 and search is **keyword** or **semantic** — local multilingual embeddings via Ollama
 `embeddinggemma`, so you can find what someone said even months later. Pull the
@@ -92,7 +92,7 @@ embedder first: `ollama pull embeddinggemma`.
 The app writes a combined log — its own messages plus the sidecar's stdout/stderr — to:
 
 ```
-%LOCALAPPDATA%\Transcribe\logs\app.log
+%LOCALAPPDATA%\Varys\logs\app.log
 ```
 
 Open it from the app via the **Open logs** link (bottom-right). Running the sidecar

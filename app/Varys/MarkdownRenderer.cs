@@ -1,7 +1,7 @@
 using Markdig;
 using Microsoft.UI.Xaml;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>Converts markdown to a themed HTML document for display in a WebView2.</summary>
 public static class MarkdownRenderer

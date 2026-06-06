@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# NOTE: this publishes the WinUI app (self-contained win-x64). The Python sidecar
+# is not yet bundled (Phase 6: bundle via PyInstaller / MSIX), so the zip is the
+# app shell + a build-verification artifact for now.
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Publish (self-contained win-x64)
+        run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -o publish
+      - name: Zip
+        run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ github.ref_name }}-win-x64.zip
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Varys-*.zip

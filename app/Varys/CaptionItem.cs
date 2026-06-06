@@ -1,7 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>A caption line (Me/Them) shown in the live or detail transcript.</summary>
 public sealed class CaptionItem

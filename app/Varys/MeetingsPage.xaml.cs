@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>Meeting library: browse / search, view + edit transcript and notes.</summary>
 public sealed partial class MeetingsPage : Page

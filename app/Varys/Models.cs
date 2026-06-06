@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace TranscribeApp;
+namespace Varys;
 
 public sealed class MeetingMeta
 {

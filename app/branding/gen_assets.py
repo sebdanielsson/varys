@@ -10,7 +10,7 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 SVG = HERE / "logo.svg"
-ASSETS = HERE.parent / "TranscribeApp" / "Assets"
+ASSETS = HERE.parent / "Varys" / "Assets"
 
 
 def render(path: str, size: int) -> None:

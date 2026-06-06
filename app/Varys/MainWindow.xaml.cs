@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
 using WinRT.Interop;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>
 /// The application window: a NavigationView hosting the Live and Meetings pages.
@@ -19,7 +19,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        AppLog.Write("TranscribeApp started");
+        AppLog.Write("Varys started");
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);

@@ -1,16 +1,16 @@
 using System;
 using System.IO;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>
-/// Appends timestamped log lines to %LOCALAPPDATA%\Transcribe\logs\app.log.
+/// Appends timestamped log lines to %LOCALAPPDATA%\Varys\logs\app.log.
 /// Captures the app's own messages plus the sidecar's stdout/stderr.
 /// </summary>
 public static class AppLog
 {
     public static string Dir { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Transcribe", "logs");
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varys", "logs");
 
     public static string FilePath { get; } = Path.Combine(Dir, "app.log");
 

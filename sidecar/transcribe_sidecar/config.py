@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     # Storage
     transcript_dir: str = "transcripts"   # console runner output (legacy)
     data_dir: str = Field(default_factory=lambda: os.path.join(
-        os.environ.get("LOCALAPPDATA") or os.path.expanduser("~/.local/share"), "Transcribe"))
+        os.environ.get("LOCALAPPDATA") or os.path.expanduser("~/.local/share"), "Varys"))
 
 
 @lru_cache

@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
-namespace TranscribeApp;
+namespace Varys;
 
 /// <summary>Live transcription: controls, the running Me/Them transcript, partial line, summary.</summary>
 public sealed partial class LivePage : Page
