@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TranscribeApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "TranscribeApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

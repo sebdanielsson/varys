@@ -65,12 +65,22 @@ uv run python -m transcribe_sidecar          # FastAPI on http://127.0.0.1:8765
 - `GET /health` · `POST /session/start` `{ "language": "auto|en|sv" }` · `POST /session/stop`
 - `WS /ws` streams events: `status`, `partial`, `final` (`{speaker, text, t0, t1, language}`).
 
+## Desktop app (Phase 3)
+
+WinUI 3 (Windows App SDK 2.1.3), unpackaged + self-contained. Launches and supervises
+the sidecar, then shows live Me/Them captions over the WebSocket.
+
+```powershell
+cd app/TranscribeApp
+dotnet run -c Debug -p:Platform=x64        # needs `uv` on PATH; auto-launches the sidecar
+```
+
 ## Status
 
 - [x] Phase 0 — scaffold & environment
 - [x] Phase 1 — capture + VAD + per-language ASR (Parakeet en / KB-Whisper sv)
 - [x] Phase 2 — FastAPI WebSocket service
-- [ ] Phase 3 — WinUI shell + live captions
+- [~] Phase 3 — WinUI app: supervises sidecar, live Me/Them captions (builds + launches)
 - [ ] Phase 4 — transcript view + export
 - [ ] Phase 5 — local LLM summary (Gemma 4 E2B via Ollama)
 - [ ] Phase 6 — MSIX packaging
