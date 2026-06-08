@@ -24,7 +24,7 @@ and can summarize each meeting with a local LLM. Nothing is ever sent to the clo
 
 ## Requirements
 
-- **Windows 11**, or Windows 10 version 1809 (build 17763) or newer — 64-bit.
+- **Windows 11 23H2** (build 22631) or newer, x64.
 - An **NVIDIA GPU** with a recent driver (GeForce RTX 20-series or newer recommended) —
   speech-to-text runs on CUDA.
 - **~10 GB free disk** for the one-time engine, model, and LLM downloads.
@@ -32,8 +32,7 @@ and can summarize each meeting with a local LLM. Nothing is ever sent to the clo
   up for you on first launch** — one click installs it (via winget) and pulls the two models
   it needs (`gemma4:e2b` for summaries, `embeddinggemma` for search). You can also install it
   yourself from [ollama.com/download](https://ollama.com/download).
-- The **WebView2 runtime** (preinstalled on Windows 11; otherwise the free
-  [Evergreen runtime](https://developer.microsoft.com/microsoft-edge/webview2/)).
+- The **WebView2 runtime** — always preinstalled on Windows 11.
 
 No separate .NET install is needed — the app is self-contained.
 
