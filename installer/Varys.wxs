@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Varys MSI. Installs the self-contained app + the sidecar source + uv.exe into
+  Program Files\Varys, with a Start-Menu shortcut and clean Add/Remove uninstall.
+  The heavy/local pieces (Python engine, speech + language models, Ollama) are NOT
+  bundled — the first-run welcome provisions them, which keeps this installer small.
+
+  Build:  wix build installer/Varys.wxs -d Version=<x.y.z> -d PublishDir=<publish dir> -o Varys.msi
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Varys"
+           Manufacturer="Sebastian Danielsson"
+           Version="$(var.Version)"
+           UpgradeCode="80019664-ED6A-4131-8246-46F466245556"
+           Scope="perMachine">
+
+    <SummaryInformation Description="Varys — local AI meeting transcription" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Varys is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="VarysIcon" SourceFile="$(var.PublishDir)\Assets\AppIcon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="VarysIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/sebdanielsson/varys" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Varys" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="Varys" />
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="Varys" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="AppShortcut" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <!-- Harvest the whole publish output: app DLLs, Assets, sidecar source, uv.exe.
+         The publish step suppresses .pdb symbols (-p:DebugType=None), so there's nothing to exclude. -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)\**" />
+    </ComponentGroup>
+
+    <Component Id="AppShortcut" Directory="AppMenuFolder" Guid="*">
+      <Shortcut Id="VarysStartMenu" Name="Varys"
+                Description="Local AI meeting transcription"
+                Target="[INSTALLFOLDER]Varys.exe" WorkingDirectory="INSTALLFOLDER"
+                Icon="VarysIcon" />
+      <RemoveFolder Id="RemoveAppMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKMU" Key="Software\Varys" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+</Wix>

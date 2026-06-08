@@ -20,3 +20,9 @@ sidecar/samples/
 [Oo]bj/
 .vs/
 *.user
+
+# Installer / release build outputs
+publish/
+*.msi
+*.tar
+*.wixpdb

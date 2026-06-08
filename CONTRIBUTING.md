@@ -95,7 +95,20 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
 - **`.github/workflows/ci.yml`** — builds the WinUI app (`dotnet build`) and lints the sidecar
   (`ruff`). Runs on push and PRs.
 - **`.github/workflows/release.yml`** — on a `v*` tag, publishes a self-contained **win-x64
-  zip** (app + sidecar source + `uv.exe`); the app runs `uv sync` on first launch.
+  MSI** (installs to Program Files) and a portable **zip**, both containing the app + sidecar
+  source + `uv.exe`. The first-run welcome provisions the engine, speech/language models, and
+  Ollama (so the installer stays small).
+
+The MSI is authored in `installer/Varys.wxs` and built with **WiX v5** (`dotnet tool install
+--global wix --version "5.*"`, then `wix build`). We pin v5 because WiX v6+ requires accepting
+the paid OSMF EULA; v5 is the MIT-licensed release. Build it locally with:
+
+```powershell
+dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -p:DebugType=None -o publish
+git archive HEAD sidecar -o sidecar.tar; tar -xf sidecar.tar -C publish
+Copy-Item (Get-Command uv).Source publish/uv.exe
+wix build installer/Varys.wxs -d Version=0.1.0 -d PublishDir=publish -o Varys.msi
+```
 
 ### Cutting a release
 

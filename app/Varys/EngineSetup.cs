@@ -103,6 +103,9 @@ public static class EngineSetup
         };
         psi.Environment["UV_PROJECT_ENVIRONMENT"] = VenvDir;
         psi.ArgumentList.Add("sync");
+        // Install exactly from the shipped lock and never write back — the sidecar source may
+        // live in a read-only install dir (Program Files). The env still builds into VenvDir.
+        psi.ArgumentList.Add("--frozen");
         try
         {
             using var p = new Process { StartInfo = psi, EnableRaisingEvents = true };

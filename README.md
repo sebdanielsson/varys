@@ -38,15 +38,17 @@ No separate .NET install is needed — the app is self-contained.
 
 ## Install
 
-1. Download the latest **`Varys-vX.Y.Z-win-x64.zip`** from the
-   [Releases page](https://github.com/sebdanielsson/varys/releases).
-2. Unzip it anywhere (e.g. `C:\Tools\Varys`).
-3. Run **`Varys.exe`**.
+Download the latest release from the
+[Releases page](https://github.com/sebdanielsson/varys/releases):
 
-**On first launch** Varys sets up its local transcription engine — a one-time download of
-PyTorch and the speech models (a few minutes). If Ollama isn't ready, a short greeter offers
-to install it and the models for you. There's no installer, and nothing is written outside
-your user profile.
+- **`Varys-vX.Y.Z-win-x64.msi`** — installer. Double-click to install into Program Files, with
+  a Start-Menu shortcut and a clean entry in Add/Remove Programs.
+- **`Varys-vX.Y.Z-win-x64.zip`** — portable. Unzip anywhere and run **`Varys.exe`**.
+
+**On first launch**, a short welcome walks you through the one-time setup that can't be bundled:
+building the local transcription engine (downloads PyTorch — a few minutes), downloading at
+least one **speech model** (English / Swedish), and installing **Ollama** plus a **language
+model** for summaries and search. Everything is stored under your user profile.
 
 ## Using Varys
 

@@ -5,10 +5,11 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
-# Publishes a self-contained win-x64 build: the WinUI app + the sidecar source +
-# uv.exe. On first launch the app runs `uv sync` to build the Python environment
-# (downloads PyTorch etc.) into %LOCALAPPDATA%\Varys\venv. Models download on first
-# use; Ollama (for summaries + semantic search) is a separate prerequisite.
+# Publishes two win-x64 artifacts for a v* tag:
+#   - Varys-<tag>-win-x64.msi  — installs to Program Files (Start-Menu shortcut, clean uninstall)
+#   - Varys-<tag>-win-x64.zip  — portable (unzip and run)
+# Both contain the self-contained WinUI app + the sidecar source + uv.exe. The Python engine,
+# speech + language models, and Ollama are NOT bundled — the first-run welcome provisions them.
 jobs:
   release:
     runs-on: windows-latest
@@ -21,17 +22,29 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - uses: astral-sh/setup-uv@v8.2.0
+      - name: Install WiX (v5 — MIT-licensed, no OSMF gate)
+        run: dotnet tool install --global wix --version "5.*"
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: "echo \"version=$('${{ github.ref_name }}'.TrimStart('v'))\" >> $env:GITHUB_OUTPUT"
       - name: Publish (self-contained win-x64)
-        run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -o publish
+        run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -p:Version=${{ steps.ver.outputs.version }} -p:DebugType=None -o publish
       - name: Bundle sidecar + uv
         shell: pwsh
         run: |
-          Copy-Item sidecar publish/sidecar -Recurse
+          # Ship only tracked sidecar files (no local .venv / __pycache__) via git archive.
+          git archive HEAD sidecar -o sidecar.tar
+          tar -xf sidecar.tar -C publish
           Copy-Item (Get-Command uv).Source publish/uv.exe
-      - name: Zip
+      - name: Build MSI
+        run: wix build installer/Varys.wxs -d Version=${{ steps.ver.outputs.version }} -d PublishDir=publish -o Varys-${{ github.ref_name }}-win-x64.msi
+      - name: Zip (portable)
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ github.ref_name }}-win-x64.zip
       - name: Release
         uses: softprops/action-gh-release@v3.0.0
         with:
-          files: Varys-*.zip
+          files: |
+            Varys-*.msi
+            Varys-*.zip
           generate_release_notes: true
