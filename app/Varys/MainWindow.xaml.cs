@@ -43,7 +43,10 @@ public sealed partial class MainWindow : Window
         Activated -= OnFirstActivated;
         try
         {
-            await WelcomeDialog.ShowIfNeededAsync(Content?.XamlRoot);
+            if (Environment.GetEnvironmentVariable("VARYS_PREVIEW_WELCOME") == "1")
+                await WelcomeDialog.ShowPreviewAsync(Content?.XamlRoot);   // dev: preview the full onboarding
+            else
+                await WelcomeDialog.ShowIfNeededAsync(Content?.XamlRoot);
         }
         catch (Exception ex)
         {

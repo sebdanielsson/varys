@@ -24,9 +24,14 @@ public sealed partial class WelcomeDialog : ContentDialog
 
     private readonly Dictionary<string, (TextBlock status, Button button, ProgressBar progress)> _modelRows = new();
 
-    private WelcomeDialog()
+    // When true, every step renders in its actionable state regardless of what's actually
+    // installed — for previewing the onboarding flow without a fresh machine.
+    private readonly bool _preview;
+
+    private WelcomeDialog(bool preview = false)
     {
         InitializeComponent();
+        _preview = preview;
         BuildModelRows();
         Opened += async (_, _) => await RefreshAsync();
     }
@@ -57,6 +62,18 @@ public sealed partial class WelcomeDialog : ContentDialog
             File.WriteAllText(WelcomedMarker, DateTime.UtcNow.ToString("o"));
         }
         catch { /* best-effort marker */ }
+    }
+
+    /// <summary>
+    /// Force-show the full onboarding flow with every step actionable, regardless of what's
+    /// actually installed — for previewing the UI. Triggered by setting VARYS_PREVIEW_WELCOME=1.
+    /// </summary>
+    public static async Task ShowPreviewAsync(XamlRoot? root)
+    {
+        if (root is null)
+            return;
+        var dialog = new WelcomeDialog(preview: true) { XamlRoot = root };
+        await dialog.ShowAsync();
     }
 
     private static bool SafeExists(string path)
@@ -103,7 +120,7 @@ public sealed partial class WelcomeDialog : ContentDialog
     private async Task RefreshAsync()
     {
         // Engine
-        if (EngineSetup.IsReady)
+        if (!_preview && EngineSetup.IsReady)
         {
             EngineStatus.Text = "Installed and ready.";
             EngineBtn.Content = "Installed";
@@ -117,7 +134,7 @@ public sealed partial class WelcomeDialog : ContentDialog
         }
 
         // Ollama (and reveal models once it's reachable)
-        var ollamaReady = await OllamaSetup.IsReachableAsync();
+        var ollamaReady = !_preview && await OllamaSetup.IsReachableAsync();
         if (ollamaReady)
         {
             OllamaStatus.Text = "Installed and running.";
@@ -130,7 +147,23 @@ public sealed partial class WelcomeDialog : ContentDialog
             OllamaStatus.Text = "Not detected — needed for summaries and semantic search.";
             OllamaButtons.Visibility = Visibility.Visible;
             OllamaInstallBtn.Visibility = OllamaSetup.FindWinget() is null ? Visibility.Collapsed : Visibility.Visible;
-            ModelsSection.Visibility = Visibility.Collapsed;
+            if (_preview)
+            {
+                // Preview: reveal the models step too so the whole flow is visible at once.
+                ModelsSection.Visibility = Visibility.Visible;
+                foreach (var (model, _) in RequiredModels)
+                {
+                    var (status, button, progress) = _modelRows[model];
+                    status.Text = "Not downloaded";
+                    button.Content = "Download";
+                    button.IsEnabled = true;
+                    progress.Visibility = Visibility.Collapsed;
+                }
+            }
+            else
+            {
+                ModelsSection.Visibility = Visibility.Collapsed;
+            }
         }
     }
 
