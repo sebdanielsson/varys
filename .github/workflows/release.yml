@@ -38,7 +38,15 @@ jobs:
           tar -xf sidecar.tar -C publish
           Copy-Item (Get-Command uv).Source publish/uv.exe
       - name: Build MSI
-        run: wix build installer/Varys.wxs -d Version=${{ steps.ver.outputs.version }} -d PublishDir=publish -o Varys-${{ github.ref_name }}-win-x64.msi
+        shell: pwsh
+        # PublishDir must be ABSOLUTE: WiX resolves the <Files Include> glob relative to the
+        # .wxs file's directory (installer/), not the working dir. A relative path silently
+        # harvests nothing, so assert the result isn't a hollow MSI.
+        run: |
+          wix build installer/Varys.wxs -d Version=${{ steps.ver.outputs.version }} -d PublishDir=$env:GITHUB_WORKSPACE\publish -o Varys-${{ github.ref_name }}-win-x64.msi
+          $size = (Get-Item Varys-${{ github.ref_name }}-win-x64.msi).Length
+          "MSI size: $([math]::Round($size/1MB,1)) MB"
+          if ($size -lt 50MB) { throw "MSI is only $size bytes - the publish harvest is empty." }
       - name: Zip (portable)
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ github.ref_name }}-win-x64.zip
       - name: Release
