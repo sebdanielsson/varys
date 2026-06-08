@@ -16,6 +16,8 @@ public sealed partial class MainWindow : Window
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
 
+    private bool _greeted;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -27,7 +29,26 @@ public sealed partial class MainWindow : Window
         ResizeToLogical(820, 900);
 
         Closed += OnClosed;
+        Activated += OnFirstActivated;
         ContentFrame.Navigate(typeof(LivePage));
+    }
+
+    // Offer to set up Ollama (summaries + semantic search) the first time the window
+    // is shown — only if it isn't already installed with the required models.
+    private async void OnFirstActivated(object sender, WindowActivatedEventArgs args)
+    {
+        if (_greeted)
+            return;
+        _greeted = true;
+        Activated -= OnFirstActivated;
+        try
+        {
+            await OllamaGreeterDialog.ShowIfNeededAsync(Content?.XamlRoot);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write($"ollama greeter failed: {ex.Message}");
+        }
     }
 
     private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
