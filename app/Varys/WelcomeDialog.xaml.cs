@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
@@ -9,20 +9,21 @@ using Microsoft.UI.Xaml.Controls;
 namespace Varys;
 
 /// <summary>
-/// First-run welcome that walks the user through the one-time setup Varys can't bundle:
-/// the Python transcription engine (built with uv), Ollama, and Ollama's models (downloaded
-/// individually). Shown on first launch, or later whenever something is still missing.
+/// First-run welcome that walks the user through the one-time setup Varys can't bundle: the
+/// Python transcription engine (built with uv), at least one speech-to-text model, Ollama, and a
+/// language model. Shown on every launch until all of those are in place.
 /// </summary>
 public sealed partial class WelcomeDialog : ContentDialog
 {
-    // Required Ollama models and what each is for (ids mirror the sidecar config).
-    private static readonly (string Model, string Caption)[] RequiredModels =
+    // Ollama models. The summary LLM is required; the embedding model is optional (semantic search).
+    private static readonly (string Model, string Caption, bool Required)[] OllamaModels =
     {
-        (OllamaSetup.SummaryModel, "Meeting summaries & action items"),
-        (OllamaSetup.EmbedModel, "Semantic search"),
+        (OllamaSetup.SummaryModel, "Summaries & action items", true),
+        (OllamaSetup.EmbedModel, "Semantic search (optional)", false),
     };
 
-    private readonly Dictionary<string, (TextBlock status, Button button, ProgressBar progress)> _modelRows = new();
+    private readonly Dictionary<string, (TextBlock status, Button button, ProgressBar progress)> _languageRows = new();
+    private readonly Dictionary<string, (TextBlock status, Button button, ProgressBar progress)> _voiceRows = new();
 
     // When true, every step renders in its actionable state regardless of what's actually
     // installed — for previewing the onboarding flow without a fresh machine.
@@ -32,36 +33,41 @@ public sealed partial class WelcomeDialog : ContentDialog
     {
         InitializeComponent();
         _preview = preview;
-        BuildModelRows();
+        BuildVoiceRows();
+        BuildLanguageRows();
         Opened += async (_, _) => await RefreshAsync();
     }
 
-    private static string WelcomedMarker => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varys", ".welcomed");
+    /// <summary>
+    /// True when everything Varys needs is in place: the engine, at least one speech model, Ollama,
+    /// and the summary language model. (The embedding model for search is optional.)
+    /// </summary>
+    public static async Task<bool> IsSetupCompleteAsync()
+    {
+        if (!EngineSetup.IsReady)
+            return false;
+        if (!VoiceModels.AnyPresent())
+            return false;
+        if (!await OllamaSetup.IsReachableAsync())
+            return false;
+        var have = await OllamaSetup.InstalledModelsAsync();
+        return OllamaSetup.HasModel(have, OllamaSetup.SummaryModel);
+    }
 
-    /// <summary>Show the welcome on first launch, or any later launch where setup is incomplete.</summary>
+    /// <summary>Show the welcome on launch whenever setup is incomplete; no-op once everything's in place.</summary>
     public static async Task ShowIfNeededAsync(XamlRoot? root)
+    {
+        if (root is null || await IsSetupCompleteAsync())
+            return;
+        await new WelcomeDialog { XamlRoot = root }.ShowAsync();
+    }
+
+    /// <summary>Show the welcome on demand (e.g. from Settings), regardless of setup state.</summary>
+    public static async Task ShowAgainAsync(XamlRoot? root)
     {
         if (root is null)
             return;
-
-        var firstRun = !SafeExists(WelcomedMarker);
-        var engineReady = EngineSetup.IsReady;
-        var ollamaReady = await OllamaSetup.IsReachableAsync();
-        var modelsMissing = ollamaReady ? (await OllamaSetup.MissingModelsAsync()).Count : RequiredModels.Length;
-
-        if (!firstRun && engineReady && ollamaReady && modelsMissing == 0)
-            return;   // already welcomed and everything's in place
-
-        var dialog = new WelcomeDialog { XamlRoot = root };
-        await dialog.ShowAsync();
-
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(WelcomedMarker)!);
-            File.WriteAllText(WelcomedMarker, DateTime.UtcNow.ToString("o"));
-        }
-        catch { /* best-effort marker */ }
+        await new WelcomeDialog { XamlRoot = root }.ShowAsync();
     }
 
     /// <summary>
@@ -72,56 +78,50 @@ public sealed partial class WelcomeDialog : ContentDialog
     {
         if (root is null)
             return;
-        var dialog = new WelcomeDialog(preview: true) { XamlRoot = root };
-        await dialog.ShowAsync();
+        await new WelcomeDialog(preview: true) { XamlRoot = root }.ShowAsync();
     }
 
-    /// <summary>Show the welcome on demand (e.g. from Settings), regardless of the first-run marker.</summary>
-    public static async Task ShowAgainAsync(XamlRoot? root)
+    // --- rows (built in code so the lists stay driven by the model catalogs) ---
+
+    private void BuildVoiceRows()
     {
-        if (root is null)
-            return;
-        var dialog = new WelcomeDialog { XamlRoot = root };
-        await dialog.ShowAsync();
+        foreach (var m in VoiceModels.All)
+            _voiceRows[m.Key] = AddRow(VoiceHost, m.Title, m.Caption, m.Key, OnDownloadVoice);
     }
 
-    private static bool SafeExists(string path)
+    private void BuildLanguageRows()
     {
-        try { return File.Exists(path); }
-        catch { return false; }
+        foreach (var (model, caption, _) in OllamaModels)
+            _languageRows[model] = AddRow(LanguageHost, model, caption, model, OnDownloadModel);
     }
 
-    // --- model rows (built in code so the list stays driven by RequiredModels) ---
-
-    private void BuildModelRows()
+    private static (TextBlock status, Button button, ProgressBar progress) AddRow(
+        Panel host, string title, string caption, string tag, RoutedEventHandler onDownload)
     {
-        foreach (var (model, caption) in RequiredModels)
-        {
-            var name = new TextBlock { Text = model, FontWeight = FontWeights.SemiBold, FontSize = 13 };
-            var cap = new TextBlock { Text = caption, FontSize = 12, Opacity = 0.7 };
-            var status = new TextBlock { FontSize = 12, Opacity = 0.7 };
-            var progress = new ProgressBar { IsIndeterminate = true, Visibility = Visibility.Collapsed, Margin = new Thickness(0, 4, 0, 0) };
+        var name = new TextBlock { Text = title, FontWeight = FontWeights.SemiBold, FontSize = 13 };
+        var cap = new TextBlock { Text = caption, FontSize = 12, Opacity = 0.7 };
+        var status = new TextBlock { FontSize = 12, Opacity = 0.7 };
+        var progress = new ProgressBar { IsIndeterminate = true, Visibility = Visibility.Collapsed, Margin = new Thickness(0, 4, 0, 0) };
 
-            var text = new StackPanel();
-            text.Children.Add(name);
-            text.Children.Add(cap);
-            text.Children.Add(status);
-            text.Children.Add(progress);
+        var text = new StackPanel();
+        text.Children.Add(name);
+        text.Children.Add(cap);
+        text.Children.Add(status);
+        text.Children.Add(progress);
 
-            var button = new Button { Content = "Download", VerticalAlignment = VerticalAlignment.Center, Tag = model };
-            button.Click += OnDownloadModel;
+        var button = new Button { Content = "Download", VerticalAlignment = VerticalAlignment.Center, Tag = tag };
+        button.Click += onDownload;
 
-            var row = new Grid { ColumnSpacing = 12, Margin = new Thickness(0, 4, 0, 4) };
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            Grid.SetColumn(text, 0);
-            Grid.SetColumn(button, 1);
-            row.Children.Add(text);
-            row.Children.Add(button);
+        var row = new Grid { ColumnSpacing = 12, Margin = new Thickness(0, 4, 0, 4) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(text, 0);
+        Grid.SetColumn(button, 1);
+        row.Children.Add(text);
+        row.Children.Add(button);
 
-            ModelsHost.Children.Add(row);
-            _modelRows[model] = (status, button, progress);
-        }
+        host.Children.Add(row);
+        return (status, button, progress);
     }
 
     // --- state ---
@@ -142,14 +142,17 @@ public sealed partial class WelcomeDialog : ContentDialog
             EngineBtn.IsEnabled = true;
         }
 
-        // Ollama (and reveal models once it's reachable)
+        // Speech models (downloading needs the engine)
+        RefreshVoice();
+
+        // Ollama + language model
         var ollamaReady = !_preview && await OllamaSetup.IsReachableAsync();
         if (ollamaReady)
         {
             OllamaStatus.Text = "Installed and running.";
             OllamaButtons.Visibility = Visibility.Collapsed;
-            ModelsSection.Visibility = Visibility.Visible;
-            await RefreshModelsAsync();
+            LanguageSection.Visibility = Visibility.Visible;
+            await RefreshLanguageAsync();
         }
         else
         {
@@ -158,44 +161,49 @@ public sealed partial class WelcomeDialog : ContentDialog
             OllamaInstallBtn.Visibility = OllamaSetup.FindWinget() is null ? Visibility.Collapsed : Visibility.Visible;
             if (_preview)
             {
-                // Preview: reveal the models step too so the whole flow is visible at once.
-                ModelsSection.Visibility = Visibility.Visible;
-                foreach (var (model, _) in RequiredModels)
-                {
-                    var (status, button, progress) = _modelRows[model];
-                    status.Text = "Not downloaded";
-                    button.Content = "Download";
-                    button.IsEnabled = true;
-                    progress.Visibility = Visibility.Collapsed;
-                }
+                LanguageSection.Visibility = Visibility.Visible;
+                foreach (var (model, _, _) in OllamaModels)
+                    SetRow(_languageRows[model], "Not downloaded", "Download", canDownload: true);
             }
             else
             {
-                ModelsSection.Visibility = Visibility.Collapsed;
+                LanguageSection.Visibility = Visibility.Collapsed;
             }
         }
     }
 
-    private async Task RefreshModelsAsync()
+    private void RefreshVoice()
+    {
+        var engineReady = _preview || EngineSetup.IsReady;
+        foreach (var m in VoiceModels.All)
+        {
+            if (!_preview && VoiceModels.IsPresent(m))
+                SetRow(_voiceRows[m.Key], "Downloaded ✓", "Installed", canDownload: false);
+            else
+                SetRow(_voiceRows[m.Key],
+                    engineReady ? "Not downloaded · a few GB" : "Set up the engine first",
+                    "Download", canDownload: engineReady);
+        }
+    }
+
+    private async Task RefreshLanguageAsync()
     {
         var have = await OllamaSetup.InstalledModelsAsync();
-        foreach (var (model, _) in RequiredModels)
+        foreach (var (model, _, _) in OllamaModels)
         {
-            var (status, button, progress) = _modelRows[model];
-            progress.Visibility = Visibility.Collapsed;
             if (OllamaSetup.HasModel(have, model))
-            {
-                status.Text = "Downloaded ✓";
-                button.Content = "Installed";
-                button.IsEnabled = false;
-            }
+                SetRow(_languageRows[model], "Downloaded ✓", "Installed", canDownload: false);
             else
-            {
-                status.Text = "Not downloaded";
-                button.Content = "Download";
-                button.IsEnabled = true;
-            }
+                SetRow(_languageRows[model], "Not downloaded", "Download", canDownload: true);
         }
+    }
+
+    private static void SetRow((TextBlock status, Button button, ProgressBar progress) row, string status, string button, bool canDownload)
+    {
+        row.status.Text = status;
+        row.button.Content = button;
+        row.button.IsEnabled = canDownload;
+        row.progress.Visibility = Visibility.Collapsed;
     }
 
     // --- actions ---
@@ -209,11 +217,43 @@ public sealed partial class WelcomeDialog : ContentDialog
         var python = await EngineSetup.BuildAsync(new Progress<string>(s => EngineStatus.Text = Shorten(s)));
 
         EngineProgress.Visibility = Visibility.Collapsed;
-        if (python != null)
-            ShowStatus("Transcription engine is ready.", InfoBarSeverity.Success);
-        else
-            ShowStatus("Engine setup didn't finish. See the log (Open logs) and try again.", InfoBarSeverity.Error);
+        ShowStatus(python != null ? "Transcription engine is ready." : "Engine setup didn't finish. See the log (Open logs) and try again.",
+            python != null ? InfoBarSeverity.Success : InfoBarSeverity.Error);
         await RefreshAsync();
+    }
+
+    private async void OnDownloadVoice(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string key)
+            return;
+        var model = VoiceModels.All.FirstOrDefault(m => m.Key == key);
+        if (model is null)
+            return;
+        if (!EngineSetup.IsReady)
+        {
+            ShowStatus("Set up the transcription engine first.", InfoBarSeverity.Warning);
+            return;
+        }
+
+        var row = _voiceRows[key];
+        row.button.IsEnabled = false;
+        row.progress.Visibility = Visibility.Visible;
+        row.status.Text = "Downloading… (a few GB)";
+        ShowStatus($"Downloading the {model.Title} model… (several GB, one-time).", InfoBarSeverity.Informational);
+
+        var ok = await VoiceModels.DownloadAsync(model, new Progress<string>(s => row.status.Text = Shorten(s)));
+
+        row.progress.Visibility = Visibility.Collapsed;
+        if (ok)
+        {
+            SetRow(row, "Downloaded ✓", "Installed", canDownload: false);
+            ShowStatus($"{model.Title} ready.", InfoBarSeverity.Success);
+        }
+        else
+        {
+            SetRow(row, "Download failed — see log", "Download", canDownload: true);
+            ShowStatus($"Couldn't download {model.Title}. See the log for details.", InfoBarSeverity.Error);
+        }
     }
 
     private async void OnInstallOllama(object sender, RoutedEventArgs e)
@@ -258,25 +298,23 @@ public sealed partial class WelcomeDialog : ContentDialog
             return;
         }
 
-        var (status, btn, progress) = _modelRows[model];
-        btn.IsEnabled = false;
-        progress.Visibility = Visibility.Visible;
-        status.Text = "Downloading…";
+        var row = _languageRows[model];
+        row.button.IsEnabled = false;
+        row.progress.Visibility = Visibility.Visible;
+        row.status.Text = "Downloading…";
         ShowStatus($"Downloading {model}…", InfoBarSeverity.Informational);
 
         var code = await OllamaSetup.PullModelAsync(ollama, model);
 
-        progress.Visibility = Visibility.Collapsed;
+        row.progress.Visibility = Visibility.Collapsed;
         if (code == 0)
         {
-            status.Text = "Downloaded ✓";
-            btn.Content = "Installed";
+            SetRow(row, "Downloaded ✓", "Installed", canDownload: false);
             ShowStatus($"{model} downloaded.", InfoBarSeverity.Success);
         }
         else
         {
-            status.Text = "Download failed — see log";
-            btn.IsEnabled = true;
+            SetRow(row, "Download failed — see log", "Download", canDownload: true);
             ShowStatus($"Couldn't download {model}. See the log for details.", InfoBarSeverity.Error);
         }
     }

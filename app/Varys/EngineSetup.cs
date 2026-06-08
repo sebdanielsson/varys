@@ -124,4 +124,48 @@ public static class EngineSetup
             return null;
         }
     }
+
+    /// <summary>
+    /// Run the engine's Python with the given args (e.g. <c>-c "&lt;snippet&gt;"</c>) — used to
+    /// pre-download speech models. Returns true on exit code 0. No-op (false) if the engine isn't built.
+    /// </summary>
+    public static async Task<bool> RunPythonAsync(IReadOnlyList<string> args, IProgress<string>? log = null, CancellationToken ct = default)
+    {
+        var python = ReadyPython();
+        if (python is null)
+        {
+            log?.Report("The transcription engine isn't set up yet.");
+            return false;
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = python,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        if (FindSidecarDir() is { } sidecar)
+            psi.WorkingDirectory = sidecar;
+        foreach (var a in args)
+            psi.ArgumentList.Add(a);
+        try
+        {
+            using var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
+            p.OutputDataReceived += (_, e) => { if (e.Data != null) { AppLog.Write($"[py] {e.Data}"); log?.Report(e.Data); } };
+            p.ErrorDataReceived += (_, e) => { if (e.Data != null) { AppLog.Write($"[py] {e.Data}"); log?.Report(e.Data); } };
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            await p.WaitForExitAsync(ct);
+            return p.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Write($"python run failed: {ex.Message}");
+            log?.Report(ex.Message);
+            return false;
+        }
+    }
 }

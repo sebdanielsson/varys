@@ -11,8 +11,8 @@
     CloseButtonText="Close"
     DefaultButton="None">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="560">
-        <StackPanel Width="470" Spacing="16">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="600">
+        <StackPanel Width="480" Spacing="16">
             <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        Text="A few one-time steps and you're ready to transcribe meetings — everything runs locally on your machine." />
 
@@ -36,6 +36,22 @@
                                 Style="{ThemeResource AccentButtonStyle}" Click="OnSetupEngine" />
                     </Grid>
                     <ProgressBar x:Name="EngineProgress" IsIndeterminate="True" Visibility="Collapsed" />
+                </StackPanel>
+            </Border>
+
+            <!-- Speech-to-text (voice) model -->
+            <Border Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE720;" FontSize="20" VerticalAlignment="Center"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <StackPanel>
+                            <TextBlock Text="Speech-to-text model" FontWeight="SemiBold" />
+                            <TextBlock Text="Download at least one — for the language(s) you meet in."
+                                       FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="VoiceHost" Spacing="4" />
                 </StackPanel>
             </Border>
 
@@ -66,20 +82,20 @@
                 </StackPanel>
             </Border>
 
-            <!-- Models (revealed once Ollama is detected) -->
-            <Border x:Name="ModelsSection" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}"
+            <!-- Language model (revealed once Ollama is detected) -->
+            <Border x:Name="LanguageSection" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}"
                     CornerRadius="8" Padding="14" Visibility="Collapsed">
                 <StackPanel Spacing="10">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <FontIcon Glyph="&#xE896;" FontSize="20" VerticalAlignment="Center"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                         <StackPanel>
-                            <TextBlock Text="Models" FontWeight="SemiBold" />
-                            <TextBlock Text="Download each model Varys uses (one-time)." FontSize="12"
+                            <TextBlock Text="Language model" FontWeight="SemiBold" />
+                            <TextBlock Text="For meeting summaries (and semantic search)." FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
                     </StackPanel>
-                    <StackPanel x:Name="ModelsHost" Spacing="4" />
+                    <StackPanel x:Name="LanguageHost" Spacing="4" />
                 </StackPanel>
             </Border>
 
