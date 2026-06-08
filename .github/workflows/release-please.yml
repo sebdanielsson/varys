@@ -1,0 +1,93 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Release Please maintains a "release PR" that bumps the version (app/Varys/Varys.csproj) and
+# CHANGELOG.md from conventional commits. Merging it tags + creates the GitHub release. The build
+# and winget jobs run in the SAME workflow run, gated on `release_created`, so they don't depend on
+# the release event re-triggering a workflow (GITHUB_TOKEN-created events don't, by design).
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build the win-x64 MSI + portable zip and attach them to the release Release Please just created.
+  build:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-dotnet@v5.3.0
+        with:
+          dotnet-version: "10.0.x"
+      - uses: astral-sh/setup-uv@v8.2.0
+      - name: Install WiX (v5 — MIT-licensed, no OSMF gate)
+        run: dotnet tool install --global wix --version "5.*"
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: "echo \"version=$('${{ needs.release-please.outputs.tag_name }}'.TrimStart('v'))\" >> $env:GITHUB_OUTPUT"
+      - name: Publish (self-contained win-x64)
+        shell: pwsh
+        # -p:SelfContained=true is explicit: the publish profile that sets it isn't reliably applied
+        # on CI, and a framework-dependent build would ship without the .NET runtime.
+        run: |
+          dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -p:SelfContained=true -p:Version=${{ steps.ver.outputs.version }} -p:DebugType=None -o publish
+          if (-not (Test-Path publish/coreclr.dll)) { throw "Publish is framework-dependent (no coreclr.dll) - expected self-contained." }
+      - name: Bundle sidecar + uv
+        shell: pwsh
+        run: |
+          # Ship only tracked sidecar files (no local .venv / __pycache__) via git archive.
+          git archive HEAD sidecar -o sidecar.tar
+          tar -xf sidecar.tar -C publish
+          Copy-Item (Get-Command uv).Source publish/uv.exe
+      - name: Build MSI
+        shell: pwsh
+        # PublishDir must be ABSOLUTE: WiX resolves the <Files Include> glob relative to the .wxs
+        # file's directory, not the working dir. Assert the result isn't a hollow MSI.
+        run: |
+          wix build installer/Varys.wxs -d Version=${{ steps.ver.outputs.version }} -d PublishDir=$env:GITHUB_WORKSPACE\publish -o Varys-${{ needs.release-please.outputs.tag_name }}-win-x64.msi
+          $size = (Get-Item Varys-${{ needs.release-please.outputs.tag_name }}-win-x64.msi).Length
+          "MSI size: $([math]::Round($size/1MB,1)) MB"
+          if ($size -lt 50MB) { throw "MSI is only $size bytes - the publish harvest is empty." }
+      - name: Zip (portable)
+        run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ needs.release-please.outputs.tag_name }}-win-x64.zip
+      - name: Attach assets to the release
+        uses: softprops/action-gh-release@v3.0.0
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            Varys-*.msi
+            Varys-*.zip
+
+  # Submit the new version to microsoft/winget-pkgs (skips quietly until WINGET_TOKEN is set).
+  winget:
+    needs: [release-please, build]
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: windows-latest
+    steps:
+      - name: Submit to winget-pkgs
+        shell: pwsh
+        run: |
+          if (-not "${{ secrets.WINGET_TOKEN }}") { Write-Host "WINGET_TOKEN not set - skipping winget submission."; exit 0 }
+          $tag = "${{ needs.release-please.outputs.tag_name }}"
+          $ver = $tag.TrimStart('v')
+          $url = "https://github.com/sebdanielsson/varys/releases/download/$tag/Varys-$tag-win-x64.msi"
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update SebDanielsson.Varys --version $ver --urls $url --submit --token "${{ secrets.WINGET_TOKEN }}"
