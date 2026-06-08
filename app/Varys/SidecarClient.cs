@@ -50,8 +50,18 @@ public sealed class SidecarClient : IAsyncDisposable
     {
         if (!await IsHealthyAsync(ct))
         {
-            var dir = LocateSidecarDir();
-            var python = await EnsureEnvironmentAsync(dir, ct);   // first run: uv sync into a per-user venv
+            var dir = EngineSetup.FindSidecarDir()
+                ?? throw new DirectoryNotFoundException(
+                    "could not locate the sidecar/ directory; set TRANSCRIBE_SIDECAR_DIR");
+            var python = EngineSetup.ReadyPython();
+            if (python is null)
+            {
+                // First run with no welcome (or it was skipped): build the engine now. Normally
+                // the first-run welcome does this with a progress UI.
+                Log?.Invoke("First run: building the transcription engine (downloading dependencies — a few minutes)…");
+                python = await EngineSetup.BuildAsync(new Progress<string>(s => Log?.Invoke(s)), ct)
+                    ?? throw new Exception("Failed to set up the transcription engine (uv sync). See the log for details.");
+            }
             var psi = new ProcessStartInfo
             {
                 FileName = python,
@@ -195,89 +205,8 @@ public sealed class SidecarClient : IAsyncDisposable
         catch (Exception ex) { Log?.Invoke($"ws error: {ex.Message}"); }
     }
 
-    private static string LocateSidecarDir()
-    {
-        var env = Environment.GetEnvironmentVariable("TRANSCRIBE_SIDECAR_DIR");
-        if (!string.IsNullOrEmpty(env) && Directory.Exists(env))
-            return env;
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, "sidecar");
-            if (File.Exists(Path.Combine(candidate, "pyproject.toml")))
-                return candidate;
-            dir = dir.Parent;
-        }
-        throw new DirectoryNotFoundException(
-            "could not locate the sidecar/ directory; set TRANSCRIBE_SIDECAR_DIR");
-    }
-
-    /// <summary>
-    /// Returns the path to the sidecar's Python interpreter. Uses the dev venv
-    /// (sidecar/.venv) when present; otherwise creates a per-user venv with `uv sync`
-    /// on first run (downloads PyTorch etc.).
-    /// </summary>
-    private async Task<string> EnsureEnvironmentAsync(string sidecarDir, CancellationToken ct)
-    {
-        var devPython = Path.Combine(sidecarDir, ".venv", "Scripts", "python.exe");
-        if (File.Exists(devPython))
-            return devPython;
-
-        var venvDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Varys", "venv");
-        var python = Path.Combine(venvDir, "Scripts", "python.exe");
-        if (File.Exists(python))
-            return python;
-
-        var uv = LocateUv()
-            ?? throw new FileNotFoundException("Could not find uv.exe to set up the transcription engine.");
-
-        Log?.Invoke("First run: setting up the transcription engine (downloading dependencies — this can take a few minutes)…");
-        var psi = new ProcessStartInfo
-        {
-            FileName = uv,
-            WorkingDirectory = sidecarDir,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        psi.Environment["UV_PROJECT_ENVIRONMENT"] = venvDir;
-        psi.ArgumentList.Add("sync");
-        using var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
-        p.OutputDataReceived += (_, e) => { if (e.Data != null) Log?.Invoke(e.Data); };
-        p.ErrorDataReceived += (_, e) => { if (e.Data != null) Log?.Invoke(e.Data); };
-        p.Start();
-        try { _job.AddProcess(p); } catch { }
-        p.BeginOutputReadLine();
-        p.BeginErrorReadLine();
-        await p.WaitForExitAsync(ct);
-        if (p.ExitCode != 0 || !File.Exists(python))
-            throw new Exception("Failed to set up the transcription engine (uv sync). See the log for details.");
-        Log?.Invoke("Engine ready.");
-        return python;
-    }
-
-    private static string? LocateUv()
-    {
-        var baseDir = AppContext.BaseDirectory;
-        var candidates = new List<string>
-        {
-            Path.Combine(baseDir, "uv.exe"),               // bundled next to the app (release)
-            Path.Combine(baseDir, "sidecar", "uv.exe"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "bin", "uv.exe"),
-        };
-        foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
-        {
-            if (!string.IsNullOrWhiteSpace(dir))
-                candidates.Add(Path.Combine(dir, "uv.exe"));
-        }
-        foreach (var c in candidates)
-        {
-            try { if (File.Exists(c)) return c; } catch { }
-        }
-        return null;
-    }
+    // Engine provisioning (sidecar-dir + uv discovery, `uv sync`) lives in EngineSetup,
+    // shared with the first-run WelcomeDialog.
 
     public async ValueTask DisposeAsync()
     {

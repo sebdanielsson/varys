@@ -33,8 +33,8 @@ public sealed partial class MainWindow : Window
         ContentFrame.Navigate(typeof(LivePage));
     }
 
-    // Offer to set up Ollama (summaries + semantic search) the first time the window
-    // is shown — only if it isn't already installed with the required models.
+    // Show the first-run welcome (engine + Ollama + models setup) the first time the window
+    // is shown — and on later launches only if something is still missing.
     private async void OnFirstActivated(object sender, WindowActivatedEventArgs args)
     {
         if (_greeted)
@@ -43,11 +43,11 @@ public sealed partial class MainWindow : Window
         Activated -= OnFirstActivated;
         try
         {
-            await OllamaGreeterDialog.ShowIfNeededAsync(Content?.XamlRoot);
+            await WelcomeDialog.ShowIfNeededAsync(Content?.XamlRoot);
         }
         catch (Exception ex)
         {
-            AppLog.Write($"ollama greeter failed: {ex.Message}");
+            AppLog.Write($"welcome dialog failed: {ex.Message}");
         }
     }
 
