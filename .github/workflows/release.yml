@@ -29,7 +29,13 @@ jobs:
         shell: pwsh
         run: "echo \"version=$('${{ github.ref_name }}'.TrimStart('v'))\" >> $env:GITHUB_OUTPUT"
       - name: Publish (self-contained win-x64)
-        run: dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -p:Version=${{ steps.ver.outputs.version }} -p:DebugType=None -o publish
+        shell: pwsh
+        # -p:SelfContained=true is explicit: the publish profile that sets it isn't reliably
+        # applied by `dotnet publish` on CI, and a framework-dependent build would ship without
+        # the .NET runtime. Assert coreclr.dll is present so that regression fails loudly.
+        run: |
+          dotnet publish app/Varys/Varys.csproj -c Release -p:Platform=x64 -p:SelfContained=true -p:Version=${{ steps.ver.outputs.version }} -p:DebugType=None -o publish
+          if (-not (Test-Path publish/coreclr.dll)) { throw "Publish is framework-dependent (no coreclr.dll) - expected self-contained." }
       - name: Bundle sidecar + uv
         shell: pwsh
         run: |
