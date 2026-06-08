@@ -13,7 +13,8 @@ jobs:
   release:
     runs-on: windows-latest
     permissions:
-      contents: write
+      contents: write       # create the release + upload assets
+      pull-requests: read    # generate_release_notes reads merged PRs for the changelog
     steps:
       - uses: actions/checkout@v6.0.3
       - uses: actions/setup-dotnet@v5.3.0
