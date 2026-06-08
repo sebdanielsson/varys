@@ -23,6 +23,15 @@ public sealed partial class LivePage : Page
         App.Sidecar.Log += OnLog;
     }
 
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        // Default the picker to the language chosen in Settings (en → "English", sv → "Swedish").
+        // A per-session override (including "Auto") is still allowed before pressing Start.
+        if (!_running)
+            LanguageBox.SelectedIndex = AppSettings.Language == "sv" ? 2 : 1;
+    }
+
     private async void OnStartStopClick(object sender, RoutedEventArgs e)
     {
         StartStopButton.IsEnabled = false;

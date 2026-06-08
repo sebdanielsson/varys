@@ -25,7 +25,7 @@
         </TitleBar>
 
         <NavigationView x:Name="Nav" Grid.Row="1" PaneDisplayMode="LeftCompact"
-                        IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+                        IsBackButtonVisible="Collapsed" IsSettingsVisible="True"
                         SelectionChanged="OnNavSelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Live" Tag="live" IsSelected="True">

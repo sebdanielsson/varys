@@ -28,6 +28,9 @@ public sealed partial class MainWindow : Window
         AppWindow.SetIcon("Assets/AppIcon.ico");
         ResizeToLogical(820, 900);
 
+        if (Content is FrameworkElement root)
+            root.RequestedTheme = AppSettings.ElementTheme;   // apply the saved theme
+
         Closed += OnClosed;
         Activated += OnFirstActivated;
         ContentFrame.Navigate(typeof(LivePage));
@@ -56,8 +59,16 @@ public sealed partial class MainWindow : Window
 
     private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        var tag = (args.SelectedItem as NavigationViewItem)?.Tag as string;
-        var target = tag == "meetings" ? typeof(MeetingsPage) : typeof(LivePage);
+        Type target;
+        if (args.IsSettingsSelected)
+        {
+            target = typeof(SettingsPage);
+        }
+        else
+        {
+            var tag = (args.SelectedItem as NavigationViewItem)?.Tag as string;
+            target = tag == "meetings" ? typeof(MeetingsPage) : typeof(LivePage);
+        }
         if (ContentFrame.CurrentSourcePageType != target)
             ContentFrame.Navigate(target);
     }

@@ -76,6 +76,15 @@ public sealed partial class WelcomeDialog : ContentDialog
         await dialog.ShowAsync();
     }
 
+    /// <summary>Show the welcome on demand (e.g. from Settings), regardless of the first-run marker.</summary>
+    public static async Task ShowAgainAsync(XamlRoot? root)
+    {
+        if (root is null)
+            return;
+        var dialog = new WelcomeDialog { XamlRoot = root };
+        await dialog.ShowAsync();
+    }
+
     private static bool SafeExists(string path)
     {
         try { return File.Exists(path); }
