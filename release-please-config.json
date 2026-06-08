@@ -4,6 +4,7 @@
     ".": {
       "release-type": "simple",
       "package-name": "Varys",
+      "include-component-in-tag": false,
       "extra-files": ["app/Varys/Varys.csproj"]
     }
   }
