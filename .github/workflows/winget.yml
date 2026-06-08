@@ -1,0 +1,31 @@
+name: Publish to winget
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (e.g. v0.1.1)"
+        required: true
+
+# Submits a manifest update to microsoft/winget-pkgs after each stable release, so
+# `winget install SebDanielsson.Varys` tracks new versions. One-time setup required:
+#   1. Submit the FIRST version manually (the package must exist before it can be updated):
+#        wingetcreate new https://github.com/sebdanielsson/varys/releases/download/v0.1.1/Varys-v0.1.1-win-x64.msi
+#   2. Add a repo secret WINGET_TOKEN: a PAT (classic `public_repo`, or a fine-grained token)
+#      that can fork and push to winget-pkgs.
+# This workflow then handles every subsequent release automatically.
+jobs:
+  winget:
+    runs-on: windows-latest
+    steps:
+      - name: Submit to winget-pkgs
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          if (-not $tag) { $tag = "${{ inputs.tag }}" }
+          $ver = $tag.TrimStart('v')
+          $url = "https://github.com/sebdanielsson/varys/releases/download/$tag/Varys-$tag-win-x64.msi"
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update SebDanielsson.Varys --version $ver --urls $url --submit --token "${{ secrets.WINGET_TOKEN }}"
