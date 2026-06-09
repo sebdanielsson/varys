@@ -1,0 +1,28 @@
+name: Sidecar deps smoke
+
+# Verifies the Python sidecar actually installs and imports — runs only when the dependency
+# pins change (e.g. a Renovate Python/dep bump), since the lint job never does `uv sync`. A
+# GitHub runner has no NVIDIA GPU, so this can't exercise CUDA, but it catches the real risks:
+# a missing wheel for the Python version, or an import/ABI break in the native stack.
+on:
+  push:
+    branches: [main]
+    paths: [sidecar/pyproject.toml, sidecar/uv.lock, sidecar/.python-version]
+  pull_request:
+    paths: [sidecar/pyproject.toml, sidecar/uv.lock, sidecar/.python-version]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: uv sync + import
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+      - uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+      - name: uv sync (install the locked ASR stack)
+        run: uv sync --frozen --directory sidecar
+      - name: Import the stack
+        shell: pwsh
+        run: uv run --frozen --directory sidecar python -c "import torch, transformers, ctranslate2, faster_whisper, av, numpy, soxr, soundfile, librosa, silero_vad, sounddevice, soundcard; import transcribe_sidecar.config as cfg; print('torch', torch.__version__, '| cuda build', torch.version.cuda); print('transformers', transformers.__version__, '| ctranslate2', ctranslate2.__version__, '| faster_whisper', faster_whisper.__version__); print('model', cfg.get_settings().model_id); print('IMPORTS OK')"
