@@ -2,7 +2,7 @@
 name = "transcribe-sidecar"
 version = "0.0.1"
 description = "Local meeting transcription sidecar (Parakeet-TDT ASR + Ollama summary)."
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "torch",
     "torchaudio",
