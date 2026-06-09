@@ -3,9 +3,31 @@
   "extends": ["config:recommended"],
   "packageRules": [
     {
+      "description": "Auto-merge patch updates of stable (non-0.x) dependencies",
       "matchUpdateTypes": ["patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
+    },
+    {
+      "description": "Patch updates -> fix(deps) so Release Please cuts a patch",
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "description": "Minor updates -> feat(deps) so Release Please cuts a minor",
+      "matchUpdateTypes": ["minor"],
+      "semanticCommitType": "feat"
+    },
+    {
+      "description": "Major updates -> breaking feat(deps)! so Release Please cuts a major",
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(deps)!:"
+    },
+    {
+      "description": "A Python feature release (e.g. 3.13 -> 3.14) is breaking for us",
+      "matchDepNames": ["python"],
+      "matchUpdateTypes": ["minor", "major"],
+      "commitMessagePrefix": "feat(deps)!:"
     }
   ]
 }
