@@ -76,7 +76,9 @@ jobs:
             Varys-*.msi
             Varys-*.zip
 
-  # Submit the new version to microsoft/winget-pkgs (skips quietly until WINGET_TOKEN is set).
+  # Submit the new version to microsoft/winget-pkgs. `wingetcreate update` only works once the
+  # package EXISTS — submit the first version by hand (`wingetcreate new <msi-url>`). Until then
+  # (or if WINGET_TOKEN is unset) this job warns and succeeds, so it never reddens a release.
   winget:
     needs: [release-please, build]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
@@ -90,4 +92,13 @@ jobs:
           $ver = $tag.TrimStart('v')
           $url = "https://github.com/sebdanielsson/varys/releases/download/$tag/Varys-$tag-win-x64.msi"
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
-          .\wingetcreate.exe update SebDanielsson.Varys --version $ver --urls $url --submit --token "${{ secrets.WINGET_TOKEN }}"
+          $out = (.\wingetcreate.exe update SebDanielsson.Varys --version $ver --urls $url --submit --token "${{ secrets.WINGET_TOKEN }}" 2>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            if ($out -match 'was not found') {
+              Write-Host "::warning::SebDanielsson.Varys isn't in winget-pkgs yet. Submit the first version once with 'wingetcreate new <msi-url>'; after it's merged this job auto-updates each release."
+              exit 0
+            }
+            Write-Host "::error::winget submission failed."
+            exit 1
+          }
