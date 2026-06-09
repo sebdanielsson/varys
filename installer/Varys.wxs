@@ -9,7 +9,7 @@
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Varys"
-           Manufacturer="Sebastian Danielsson"
+           Manufacturer="SebDanielsson"
            Version="$(var.Version)"
            UpgradeCode="80019664-ED6A-4131-8246-46F466245556"
            Scope="perMachine">
