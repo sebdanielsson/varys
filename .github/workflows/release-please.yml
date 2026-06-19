@@ -69,7 +69,7 @@ jobs:
       - name: Zip (portable)
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ needs.release-please.outputs.tag_name }}-win-x64.zip
       - name: Attach assets to the release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@v3.0.1
         with:
           tag_name: ${{ needs.release-please.outputs.tag_name }}
           files: |
