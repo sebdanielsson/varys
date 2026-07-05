@@ -30,7 +30,7 @@ jobs:
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
       - uses: actions/setup-dotnet@v5.3.0
