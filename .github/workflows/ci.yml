@@ -11,7 +11,7 @@ jobs:
     name: Build WinUI app
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: "10.0.x"
@@ -22,7 +22,7 @@ jobs:
     name: Lint sidecar
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v8.3.2
       - name: Lint (syntax + undefined names)
         run: uvx ruff check sidecar/transcribe_sidecar --select=E9,F63,F7,F82
