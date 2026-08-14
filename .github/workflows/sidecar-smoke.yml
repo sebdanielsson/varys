@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
       - name: uv sync (install the locked ASR stack)

@@ -23,6 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
       - name: Lint (syntax + undefined names)
         run: uvx ruff check sidecar/transcribe_sidecar --select=E9,F63,F7,F82
