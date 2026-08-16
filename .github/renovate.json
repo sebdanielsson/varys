@@ -28,6 +28,12 @@
       "matchDepNames": ["python"],
       "matchUpdateTypes": ["minor", "major"],
       "commitMessagePrefix": "feat(deps)!:"
+    },
+    {
+      "description": "GitHub Actions run in CI and never ship in the MSI, so they must not move the app version at all. Must stay LAST: the update-type rules above would otherwise make actions/checkout v6 -> v7 a breaking change to Varys.",
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "chore",
+      "commitMessagePrefix": "chore(deps):"
     }
   ]
 }

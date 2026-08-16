@@ -90,6 +90,11 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
   MSIX app is blocked from `127.0.0.1` by default, which would break the sidecar link.
 - Dependencies (NuGet + GitHub Actions) are **pinned to exact versions**; Renovate opens the
   bump PRs.
+- `.github/renovate.json` maps each update type to the conventional type that carries the right
+  release impact: patch → `fix(deps)`, minor → `feat(deps)`, major → `feat(deps)!`, and a Python
+  feature release is treated as breaking. **GitHub Actions are the exception** — they run in CI and
+  never ship inside the MSI, so they're forced to `chore(deps)` and never move the app version.
+  Anything a user actually receives should drive the version; nothing else should.
 
 ## CI / CD
 
