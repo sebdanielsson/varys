@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+  "semanticCommits": "enabled",
   "packageRules": [
     {
       "description": "Auto-merge patch updates of stable (non-0.x) dependencies",

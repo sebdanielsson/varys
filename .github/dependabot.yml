@@ -1,0 +1,25 @@
+version: 2
+
+# Renovate owns version updates for this repo. This file exists so that Dependabot's SECURITY
+# updates — which run whether or not this file exists, and which are the only thing that patches
+# transitive pins in sidecar/uv.lock — land as conventional commits Release Please will act on.
+#
+# The sidecar ships: `git archive HEAD sidecar` puts pyproject.toml + uv.lock in the MSI, and the
+# app runs `uv sync` from that lockfile on first launch. So a CVE fix in a locked transitive
+# dependency only reaches users once a new version is released — which means these bumps have to
+# cut a release, unlike the CI-only GitHub Action bumps that are forced to chore(deps) in
+# .github/renovate.json.
+#
+# `fix` + `include: scope` produces "fix(deps): bump <pkg> ...", which Release Please turns into a
+# patch. Dependabot's default here would be "build(deps):", which it ignores entirely.
+updates:
+  - package-ecosystem: uv # matches the python:uv label Dependabot already applies
+    directory: /sidecar
+    schedule:
+      interval: weekly
+    # Zero disables Dependabot's scheduled VERSION updates so it doesn't duplicate Renovate.
+    # Security PRs are explicitly not subject to this limit and keep flowing.
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: fix
+      include: scope

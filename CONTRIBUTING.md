@@ -95,6 +95,12 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
   feature release is treated as breaking. **GitHub Actions are the exception** — they run in CI and
   never ship inside the MSI, so they're forced to `chore(deps)` and never move the app version.
   Anything a user actually receives should drive the version; nothing else should.
+- By the same rule, Dependabot **security** updates to `sidecar/uv.lock` are forced to `fix(deps)`
+  in `.github/dependabot.yml` so they cut a patch release. The lockfile ships in the MSI and the
+  app runs `uv sync` against it on first launch, so a CVE fix in a locked transitive dependency
+  only reaches users once a new version goes out. Dependabot's own default (`build(deps):`) would
+  be ignored by Release Please and the fix would sit on `main` unreleased. Renovate still owns
+  ordinary version updates; Dependabot's scheduled PRs are disabled with a zero limit.
 
 ## CI / CD
 
