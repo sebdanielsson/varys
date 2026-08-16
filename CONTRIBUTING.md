@@ -33,6 +33,7 @@ The C# side stays pure UI; all audio and ML lives in the sidecar. See
 app/Varys/      WinUI 3 desktop app (C#)
 app/branding/   logo.svg + gen_assets.py (icon / tile generation)
 sidecar/        Python 3.13 engine (the transcribe_sidecar package)
+installer/      Varys.wxs — WiX v5 authoring for the MSI
 .github/        CI + release workflows
 docs/           architecture & decisions
 ```
@@ -94,10 +95,17 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
 
 - **`.github/workflows/ci.yml`** — builds the WinUI app (`dotnet build`) and lints the sidecar
   (`ruff`). Runs on push and PRs.
-- **`.github/workflows/release.yml`** — on a `v*` tag, publishes a self-contained **win-x64
-  MSI** (installs to Program Files) and a portable **zip**, both containing the app + sidecar
-  source + `uv.exe`. The first-run welcome provisions the engine, speech/language models, and
-  Ollama (so the installer stays small).
+- **`.github/workflows/release-please.yml`** — maintains the release PR, then (in the same run,
+  gated on `release_created`) publishes a self-contained **win-x64 MSI** (installs to Program
+  Files) and a portable **zip**, both containing the app + sidecar source + `uv.exe`, and submits
+  the new version to winget. The first-run welcome provisions the engine, speech/language models,
+  and Ollama (so the installer stays small).
+- **`.github/workflows/sidecar-smoke.yml`** — `uv sync --frozen` + imports the whole native stack
+  on Windows. Runs only when `sidecar/pyproject.toml`, `uv.lock`, or `.python-version` change,
+  since the lint job never installs the dependencies. Runners have no GPU, so it can't exercise
+  CUDA, but it catches a missing wheel or an ABI break before it reaches a release.
+- **`.github/workflows/lint-pr.yml`** — fails the PR if its title isn't a conventional commit,
+  since that title becomes the squash commit Release Please reads.
 
 The MSI is authored in `installer/Varys.wxs` and built with **WiX v5** (`dotnet tool install
 --global wix --version "5.*"`, then `wix build`). We pin v5 because WiX v6+ requires accepting
@@ -112,12 +120,17 @@ wix build installer/Varys.wxs -d Version=0.1.0 -d PublishDir=publish -o Varys.ms
 
 ### Cutting a release
 
-```powershell
-git tag v0.1.0
-git push origin v0.1.0
-```
+Releases are automated with [Release Please](https://github.com/googleapis/release-please) — **don't
+create tags by hand**. Every push to `main` updates a standing release PR that bumps
+`app/Varys/Varys.csproj` and `CHANGELOG.md` from the conventional commits since the last release.
 
-The release workflow builds the zip and creates the GitHub Release.
+Merging that PR *is* the release: it tags the commit, creates the GitHub Release, builds and
+attaches the MSI + zip, and submits the version to winget.
+
+Which means the commit subjects — i.e. the **PR titles**, since PRs are squash-merged — decide the
+version: `feat:` → minor, `fix:` → patch, `feat!:` or a `BREAKING CHANGE:` footer → major, and
+`chore:`/`docs:`/`ci:` → no release. To force a specific version, add a `Release-As: 1.2.3` footer
+to a commit on `main`.
 
 ## Logs
 
@@ -126,6 +139,15 @@ stdout/stderr. Running the sidecar standalone logs to the console instead.
 
 ## Roadmap
 
+Shipped:
+
 - [x] Phase 0–5 — scaffold · capture + VAD + per-language ASR · FastAPI WS · WinUI app · summaries
 - [x] Meeting library + keyword/semantic search
-- [~] Phase 6 — standalone win-x64 release done; one-click MSIX next
+- [x] Standalone win-x64 release — MSI + portable zip, with first-run engine setup
+- [x] Automated releases (Release Please) and winget submission
+
+Next:
+
+- [ ] Phase 6 — one-click MSIX installer, so there's no first-run download. Blocked on the
+      `WindowsPackageType=None` constraint noted under [Conventions](#conventions): a packaged app
+      can't reach `127.0.0.1` by default, which is how the UI talks to the sidecar.
