@@ -33,6 +33,7 @@ The C# side stays pure UI; all audio and ML lives in the sidecar. See
 app/Varys/      WinUI 3 desktop app (C#)
 app/branding/   logo.svg + gen_assets.py (icon / tile generation)
 sidecar/        Python 3.13 engine (the transcribe_sidecar package)
+installer/      Varys.wxs — WiX v5 authoring for the MSI
 .github/        CI + release workflows
 docs/           architecture & decisions
 ```
@@ -99,6 +100,10 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
   Files) and a portable **zip**, both containing the app + sidecar source + `uv.exe`, and submits
   the new version to winget. The first-run welcome provisions the engine, speech/language models,
   and Ollama (so the installer stays small).
+- **`.github/workflows/sidecar-smoke.yml`** — `uv sync --frozen` + imports the whole native stack
+  on Windows. Runs only when `sidecar/pyproject.toml`, `uv.lock`, or `.python-version` change,
+  since the lint job never installs the dependencies. Runners have no GPU, so it can't exercise
+  CUDA, but it catches a missing wheel or an ABI break before it reaches a release.
 - **`.github/workflows/lint-pr.yml`** — fails the PR if its title isn't a conventional commit,
   since that title becomes the squash commit Release Please reads.
 
@@ -134,6 +139,15 @@ stdout/stderr. Running the sidecar standalone logs to the console instead.
 
 ## Roadmap
 
+Shipped:
+
 - [x] Phase 0–5 — scaffold · capture + VAD + per-language ASR · FastAPI WS · WinUI app · summaries
 - [x] Meeting library + keyword/semantic search
-- [~] Phase 6 — standalone win-x64 release done; one-click MSIX next
+- [x] Standalone win-x64 release — MSI + portable zip, with first-run engine setup
+- [x] Automated releases (Release Please) and winget submission
+
+Next:
+
+- [ ] Phase 6 — one-click MSIX installer, so there's no first-run download. Blocked on the
+      `WindowsPackageType=None` constraint noted under [Conventions](#conventions): a packaged app
+      can't reach `127.0.0.1` by default, which is how the UI talks to the sidecar.

@@ -24,7 +24,7 @@ and can summarize each meeting with a local LLM. Nothing is ever sent to the clo
 
 ## Requirements
 
-- **Windows 11 23H2** (build 22631) or newer, x64.
+- **Windows 11 22H2** (build 22621) or newer, x64 — the app's `TargetPlatformMinVersion`.
 - An **NVIDIA GPU** with a recent driver (GeForce RTX 20-series or newer recommended) —
   speech-to-text runs on CUDA.
 - **~10 GB free disk** for the one-time engine, model, and LLM downloads.
@@ -95,13 +95,10 @@ machine. There is no telemetry or account.
 
 ## Building from source / contributing
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the architecture, development setup, and release
-process.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the architecture, development setup, release process,
+and the [roadmap](CONTRIBUTING.md#roadmap).
 
-## Status
+## Changelog
 
-- ✅ Live capture + per-language ASR (Parakeet EN / KB-Whisper SV)
-- ✅ WinUI app · meeting library · keyword + semantic search
-- ✅ Local LLM summaries (Gemma via Ollama)
-- ✅ Standalone win-x64 release with first-run engine setup
-- 🚧 One-click MSIX installer (no first-run download)
+Every release and what changed is in [CHANGELOG.md](CHANGELOG.md), generated from the commit
+history — or on the [Releases page](https://github.com/sebdanielsson/varys/releases).
