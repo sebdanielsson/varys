@@ -94,10 +94,13 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
 
 - **`.github/workflows/ci.yml`** — builds the WinUI app (`dotnet build`) and lints the sidecar
   (`ruff`). Runs on push and PRs.
-- **`.github/workflows/release.yml`** — on a `v*` tag, publishes a self-contained **win-x64
-  MSI** (installs to Program Files) and a portable **zip**, both containing the app + sidecar
-  source + `uv.exe`. The first-run welcome provisions the engine, speech/language models, and
-  Ollama (so the installer stays small).
+- **`.github/workflows/release-please.yml`** — maintains the release PR, then (in the same run,
+  gated on `release_created`) publishes a self-contained **win-x64 MSI** (installs to Program
+  Files) and a portable **zip**, both containing the app + sidecar source + `uv.exe`, and submits
+  the new version to winget. The first-run welcome provisions the engine, speech/language models,
+  and Ollama (so the installer stays small).
+- **`.github/workflows/lint-pr.yml`** — fails the PR if its title isn't a conventional commit,
+  since that title becomes the squash commit Release Please reads.
 
 The MSI is authored in `installer/Varys.wxs` and built with **WiX v5** (`dotnet tool install
 --global wix --version "5.*"`, then `wix build`). We pin v5 because WiX v6+ requires accepting
@@ -112,12 +115,17 @@ wix build installer/Varys.wxs -d Version=0.1.0 -d PublishDir=publish -o Varys.ms
 
 ### Cutting a release
 
-```powershell
-git tag v0.1.0
-git push origin v0.1.0
-```
+Releases are automated with [Release Please](https://github.com/googleapis/release-please) — **don't
+create tags by hand**. Every push to `main` updates a standing release PR that bumps
+`app/Varys/Varys.csproj` and `CHANGELOG.md` from the conventional commits since the last release.
 
-The release workflow builds the zip and creates the GitHub Release.
+Merging that PR *is* the release: it tags the commit, creates the GitHub Release, builds and
+attaches the MSI + zip, and submits the version to winget.
+
+Which means the commit subjects — i.e. the **PR titles**, since PRs are squash-merged — decide the
+version: `feat:` → minor, `fix:` → patch, `feat!:` or a `BREAKING CHANGE:` footer → major, and
+`chore:`/`docs:`/`ci:` → no release. To force a specific version, add a `Release-As: 1.2.3` footer
+to a commit on `main`.
 
 ## Logs
 
