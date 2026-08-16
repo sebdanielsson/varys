@@ -124,8 +124,16 @@ Releases are automated with [Release Please](https://github.com/googleapis/relea
 create tags by hand**. Every push to `main` updates a standing release PR that bumps
 `app/Varys/Varys.csproj` and `CHANGELOG.md` from the conventional commits since the last release.
 
-Merging that PR *is* the release: it tags the commit, creates the GitHub Release, builds and
-attaches the MSI + zip, and submits the version to winget.
+Merging that PR *is* the release: it tags the commit, creates the GitHub Release **as a draft**,
+builds and attaches the MSI + zip, publishes the release, and submits the version to winget — in
+that order.
+
+The draft step is not cosmetic. This repo has **immutable releases** enabled, and GitHub only
+accepts asset uploads *before* a release is published, so publishing first permanently strands a
+release with no downloads (that is what happened to v0.2.0). Publishing is therefore the final step
+of the build job: if the build breaks, you get a draft you can delete and retry, not a broken
+public release. Because a draft release doesn't create its git tag, `force-tag-creation: true`
+makes Release Please push the tag up front so the build job has something to check out.
 
 Which means the commit subjects — i.e. the **PR titles**, since PRs are squash-merged — decide the
 version: `feat:` → minor, `fix:` → patch, `feat!:` or a `BREAKING CHANGE:` footer → major, and

@@ -5,6 +5,8 @@
       "release-type": "simple",
       "package-name": "Varys",
       "include-component-in-tag": false,
+      "draft": true,
+      "force-tag-creation": true,
       "bump-minor-pre-major": true,
       "extra-files": ["app/Varys/Varys.csproj"]
     }
