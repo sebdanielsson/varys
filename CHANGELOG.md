@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/sebdanielsson/varys/compare/v0.2.0...v0.2.1) (2026-08-17)
+
+
+### Bug Fixes
+
+* **ci:** publish releases as drafts so assets can be attached ([#36](https://github.com/sebdanielsson/varys/issues/36)) ([bd2ab35](https://github.com/sebdanielsson/varys/commit/bd2ab3585a3b1ad89c2808b046db67e085a7ca05))
+
 ## [0.2.0](https://github.com/sebdanielsson/varys/compare/v0.1.3...v0.2.0) (2026-08-16)
 
 
