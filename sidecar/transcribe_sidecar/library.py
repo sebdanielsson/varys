@@ -32,27 +32,26 @@ def meetings_root(s: Settings) -> Path:
 
 
 def meeting_dir(s: Settings, mid: str) -> Path | None:
-    """Resolve <meetings_root>/<mid>, or None if `mid` doesn't stay inside it.
+    """Return the directory for meeting `mid`, or None if there isn't one.
 
-    Meeting ids reach us straight off the REST path (`/meetings/{mid}`) and end up in
-    filesystem calls up to and including `shutil.rmtree`, so they are never trusted. An id
-    written as `../../..` or an absolute path would otherwise read, overwrite, or delete
-    directories anywhere the sidecar can reach. The sidecar only listens on 127.0.0.1, but
-    that still leaves every other local process — and a browser pointed at localhost.
+    Meeting ids reach us straight off the REST path (`/meetings/{mid}`) and end up in filesystem
+    calls up to and including `shutil.rmtree`, so they are never trusted.
 
-    Ids we generate look like `meeting-20260817-231500`, but this deliberately checks
-    containment rather than matching that shape, so meetings created by earlier versions
-    keep working.
+    Rather than joining the id onto the meetings root and then checking the result stayed inside
+    it, this matches the id against the directories that actually exist. The returned path comes
+    from the filesystem listing, not from the request, so a traversal attempt has nothing to
+    traverse: `../../etc` simply matches no entry. Dot-prefixed names are skipped, both because
+    `.trash` is ours and because list_meetings() already treats them as non-meetings.
     """
-    # Dot-prefixed names are rejected outright: `.trash` is ours, and list_meetings() already
-    # treats dot-directories as non-meetings, so DELETE /meetings/.trash must not resolve either.
     if not mid or mid.startswith(".") or "/" in mid or "\\" in mid or "\x00" in mid:
         return None
-    root = meetings_root(s).resolve()
-    d = (root / mid).resolve()
-    if d == root or not d.is_relative_to(root):
+    root = meetings_root(s)
+    if not root.is_dir():
         return None
-    return d
+    for entry in root.iterdir():
+        if entry.name == mid and entry.is_dir():
+            return entry
+    return None
 
 
 def _read_json(p: Path) -> dict:
