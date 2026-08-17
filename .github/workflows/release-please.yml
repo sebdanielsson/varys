@@ -100,6 +100,22 @@ jobs:
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: windows-latest
     steps:
+      # microsoft/winget-pkgs takes thousands of commits a week, so the fork goes stale fast, and
+      # wingetcreate refuses to submit from a fork it can't fast-forward: "The forked repository
+      # could not be synced with the upstream commits." That is what failed the v0.2.1 release,
+      # with the fork ~19,700 commits behind. Sync first so it can never be the reason a release
+      # doesn't reach winget. Non-fatal: if the sync fails, let wingetcreate try and report.
+      - name: Sync the winget-pkgs fork
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if (-not $env:GH_TOKEN) { Write-Host "WINGET_TOKEN not set - skipping fork sync."; exit 0 }
+          gh repo sync ${{ github.repository_owner }}/winget-pkgs --source microsoft/winget-pkgs
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::Could not fast-forward the winget-pkgs fork - it may have diverged from upstream. Reset it to microsoft:master by hand if the submission below fails."
+          }
+
       - name: Submit to winget-pkgs
         shell: pwsh
         run: |
@@ -114,6 +130,10 @@ jobs:
             if ($out -match 'was not found') {
               Write-Host "::warning::SebDanielsson.Varys isn't in winget-pkgs yet. Submit the first version once with 'wingetcreate new <msi-url>'; after it's merged this job auto-updates each release."
               exit 0
+            }
+            if ($out -match 'could not be synced') {
+              Write-Host "::error::The winget-pkgs fork is out of sync with upstream and the sync step above could not fix it. Reset it with: gh repo sync ${{ github.repository_owner }}/winget-pkgs --source microsoft/winget-pkgs --force"
+              exit 1
             }
             Write-Host "::error::winget submission failed."
             exit 1
