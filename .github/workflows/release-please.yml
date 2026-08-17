@@ -12,6 +12,12 @@ permissions:
 # CHANGELOG.md from conventional commits. Merging it tags + creates the GitHub release. The build
 # and winget jobs run in the SAME workflow run, gated on `release_created`, so they don't depend on
 # the release event re-triggering a workflow (GITHUB_TOKEN-created events don't, by design).
+#
+# The release is created as a DRAFT (`draft: true` in release-please-config.json) and published by
+# the last step of the build job. This repo has immutable releases enabled, and GitHub only accepts
+# asset uploads before a release is published — publishing first is what left v0.2.0 with no MSI or
+# zip, permanently. A draft release does not create its git tag, which the build job checks out, so
+# `force-tag-creation: true` makes Release Please push the tag ref explicitly up front.
 jobs:
   release-please:
     runs-on: ubuntu-latest
@@ -68,13 +74,23 @@ jobs:
           if ($size -lt 50MB) { throw "MSI is only $size bytes - the publish harvest is empty." }
       - name: Zip (portable)
         run: Compress-Archive -Path publish/* -DestinationPath Varys-${{ needs.release-please.outputs.tag_name }}-win-x64.zip
-      - name: Attach assets to the release
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
-          files: |
-            Varys-*.msi
-            Varys-*.zip
+      # Filenames are spelled out rather than globbed: PowerShell does not expand wildcards for
+      # native commands, so `gh release upload ... Varys-*.msi` would pass the literal string.
+      - name: Attach assets to the draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ needs.release-please.outputs.tag_name }}"
+          gh release upload $tag "Varys-$tag-win-x64.msi" "Varys-$tag-win-x64.zip" --clobber
+      # Publishing is the LAST step, because immutable releases freeze assets at publish time.
+      # If anything above fails, the release stays a draft with the tag already in place — far
+      # better than the previous behaviour, which published an empty release you cannot repair.
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ needs.release-please.outputs.tag_name }}" --draft=false --latest
 
   # Submit the new version to microsoft/winget-pkgs. `wingetcreate update` only works once the
   # package EXISTS — submit the first version by hand (`wingetcreate new <msi-url>`). Until then
