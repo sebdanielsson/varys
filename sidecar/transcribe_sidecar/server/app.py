@@ -150,8 +150,11 @@ async def meeting_summarize(mid: str) -> dict:
     try:
         summary = await loop.run_in_executor(
             None, lambda: summarize(m["transcript_md"], base_url=s.ollama_url, model=s.summary_model))
-    except Exception as ex:
-        return {"status": "error", "message": str(ex)}
+    except Exception:
+        # The exception text can carry model paths and internal state, so it goes to the log
+        # (%LOCALAPPDATA%\\Varys\\logs\\app.log, reachable from "Open logs") not the response.
+        logger.exception("summarize failed for %s", mid)
+        return {"status": "error", "message": "Summarization failed. See the log for details."}
     library.set_summary(s, mid, summary)
     _broadcast_threadsafe({"type": "summary", "meeting_id": mid, "text": summary})
     return {"status": "ok", "summary": summary, "model": s.summary_model}
@@ -162,8 +165,9 @@ async def meeting_index(mid: str) -> dict:
     s = get_settings()
     try:
         ok = await asyncio.get_running_loop().run_in_executor(None, lambda: library.index_meeting(s, mid))
-    except Exception as ex:
-        return {"status": "error", "message": str(ex)}
+    except Exception:
+        logger.exception("indexing failed for %s", mid)
+        return {"status": "error", "message": "Indexing failed. See the log for details."}
     return {"status": "ok" if ok else "skipped"}
 
 
@@ -176,8 +180,9 @@ async def search(q: str = "", mode: str = "keyword", limit: int = 20) -> dict:
             return {"status": "error", "message": "Ollama is not reachable for semantic search."}
         try:
             hits = await loop.run_in_executor(None, lambda: library.search_semantic(s, q, limit))
-        except Exception as ex:
-            return {"status": "error", "message": str(ex)}
+        except Exception:
+            logger.exception("semantic search failed")
+            return {"status": "error", "message": "Semantic search failed. See the log for details."}
     else:
         hits = await loop.run_in_executor(None, lambda: library.search_keyword(s, q, limit))
     return {"status": "ok", "mode": mode, "hits": hits}

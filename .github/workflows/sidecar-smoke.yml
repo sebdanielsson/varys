@@ -12,6 +12,10 @@ on:
     paths: [sidecar/pyproject.toml, sidecar/uv.lock, sidecar/.python-version]
   workflow_dispatch:
 
+# Both jobs only read the checkout; nothing here needs to write to the repo.
+permissions:
+  contents: read
+
 jobs:
   smoke:
     name: uv sync + import
