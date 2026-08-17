@@ -44,7 +44,9 @@ def meeting_dir(s: Settings, mid: str) -> Path | None:
     containment rather than matching that shape, so meetings created by earlier versions
     keep working.
     """
-    if not mid or mid in {".", ".."} or "/" in mid or "\\" in mid or "\x00" in mid:
+    # Dot-prefixed names are rejected outright: `.trash` is ours, and list_meetings() already
+    # treats dot-directories as non-meetings, so DELETE /meetings/.trash must not resolve either.
+    if not mid or mid.startswith(".") or "/" in mid or "\\" in mid or "\x00" in mid:
         return None
     root = meetings_root(s).resolve()
     d = (root / mid).resolve()
@@ -223,13 +225,15 @@ def rename_meeting(settings: Settings, mid: str, title: str) -> bool:
 
 def delete_meeting(settings: Settings, mid: str) -> bool:
     """Move a meeting to <root>/.trash (reversible)."""
-    root = meetings_root(settings)
     d = meeting_dir(settings, mid)
     if d is None or not d.exists():
         return False
-    trash = root / ".trash"
+    # Anchor the trash to the same resolved root meeting_dir() used, and name the destination
+    # from d.name rather than the caller's string, so a relative/symlinked data_dir or a
+    # differently-cased id can't land the move somewhere other than beside the meeting.
+    trash = d.parent / ".trash"
     trash.mkdir(parents=True, exist_ok=True)
-    dest = trash / mid
+    dest = trash / d.name
     if dest.exists():
         shutil.rmtree(dest, ignore_errors=True)
     shutil.move(str(d), str(dest))
