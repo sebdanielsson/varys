@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Both jobs only read the checkout; nothing here needs to write to the repo.
+permissions:
+  contents: read
+
 jobs:
   app:
     name: Build WinUI app

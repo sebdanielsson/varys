@@ -31,6 +31,30 @@ def meetings_root(s: Settings) -> Path:
     return Path(s.data_dir) / "meetings"
 
 
+def meeting_dir(s: Settings, mid: str) -> Path | None:
+    """Resolve <meetings_root>/<mid>, or None if `mid` doesn't stay inside it.
+
+    Meeting ids reach us straight off the REST path (`/meetings/{mid}`) and end up in
+    filesystem calls up to and including `shutil.rmtree`, so they are never trusted. An id
+    written as `../../..` or an absolute path would otherwise read, overwrite, or delete
+    directories anywhere the sidecar can reach. The sidecar only listens on 127.0.0.1, but
+    that still leaves every other local process — and a browser pointed at localhost.
+
+    Ids we generate look like `meeting-20260817-231500`, but this deliberately checks
+    containment rather than matching that shape, so meetings created by earlier versions
+    keep working.
+    """
+    # Dot-prefixed names are rejected outright: `.trash` is ours, and list_meetings() already
+    # treats dot-directories as non-meetings, so DELETE /meetings/.trash must not resolve either.
+    if not mid or mid.startswith(".") or "/" in mid or "\\" in mid or "\x00" in mid:
+        return None
+    root = meetings_root(s).resolve()
+    d = (root / mid).resolve()
+    if d == root or not d.is_relative_to(root):
+        return None
+    return d
+
+
 def _read_json(p: Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
@@ -94,8 +118,8 @@ def list_meetings(settings: Settings) -> list[dict]:
 
 
 def load_meeting(settings: Settings, mid: str) -> dict | None:
-    d = meetings_root(settings) / mid
-    if not (d / "meta.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "meta.json").exists():
         return None
 
     def _opt(name: str) -> str:
@@ -112,8 +136,8 @@ def load_meeting(settings: Settings, mid: str) -> dict | None:
 
 
 def set_summary(settings: Settings, mid: str, summary: str) -> bool:
-    d = meetings_root(settings) / mid
-    if not (d / "meta.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "meta.json").exists():
         return False
     _write_text(d / "summary.md", summary)
     meta = _read_json(d / "meta.json")
@@ -123,8 +147,8 @@ def set_summary(settings: Settings, mid: str, summary: str) -> bool:
 
 
 def set_notes(settings: Settings, mid: str, text: str) -> bool:
-    d = meetings_root(settings) / mid
-    if not (d / "meta.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "meta.json").exists():
         return False
     _write_text(d / "summary.md", text)
     meta = _read_json(d / "meta.json")
@@ -170,8 +194,8 @@ def save_transcript(settings: Settings, mid: str, md_text: str) -> bool:
     """Save an edited transcript: re-derive json/md/srt and re-index for search."""
     from .transcript.store import Transcript, Utterance
 
-    d = meetings_root(settings) / mid
-    if not (d / "meta.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "meta.json").exists():
         return False
     t = Transcript(title=mid)
     for u in parse_markdown_transcript(md_text):
@@ -190,8 +214,8 @@ def save_transcript(settings: Settings, mid: str, md_text: str) -> bool:
 
 
 def rename_meeting(settings: Settings, mid: str, title: str) -> bool:
-    d = meetings_root(settings) / mid
-    if not (d / "meta.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "meta.json").exists():
         return False
     meta = _read_json(d / "meta.json")
     meta["title"] = title.strip() or meta["title"]
@@ -201,13 +225,15 @@ def rename_meeting(settings: Settings, mid: str, title: str) -> bool:
 
 def delete_meeting(settings: Settings, mid: str) -> bool:
     """Move a meeting to <root>/.trash (reversible)."""
-    root = meetings_root(settings)
-    d = root / mid
-    if not d.exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not d.exists():
         return False
-    trash = root / ".trash"
+    # Anchor the trash to the same resolved root meeting_dir() used, and name the destination
+    # from d.name rather than the caller's string, so a relative/symlinked data_dir or a
+    # differently-cased id can't land the move somewhere other than beside the meeting.
+    trash = d.parent / ".trash"
     trash.mkdir(parents=True, exist_ok=True)
-    dest = trash / mid
+    dest = trash / d.name
     if dest.exists():
         shutil.rmtree(dest, ignore_errors=True)
     shutil.move(str(d), str(dest))
@@ -260,8 +286,8 @@ def _query_text(s: Settings, text: str) -> str:
 
 def index_meeting(settings: Settings, mid: str) -> bool:
     """Build and store semantic-search embeddings for one meeting."""
-    d = meetings_root(settings) / mid
-    if not (d / "transcript.json").exists():
+    d = meeting_dir(settings, mid)
+    if d is None or not (d / "transcript.json").exists():
         return False
     chunks = _chunks(_read_json(d / "transcript.json").get("utterances", []))
     if not chunks:
