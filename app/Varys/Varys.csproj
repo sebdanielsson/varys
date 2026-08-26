@@ -8,7 +8,7 @@
     <RootNamespace>Varys</RootNamespace>
     <!-- Bumped automatically by Release Please (the x-release-please-version marker); also shown
          in Settings → About. The release build re-stamps it from the tag too. -->
-    <Version>0.2.1</Version> <!-- x-release-please-version -->
+    <Version>0.2.2</Version> <!-- x-release-please-version -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</RuntimeIdentifier>
