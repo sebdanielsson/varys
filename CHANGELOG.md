@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/sebdanielsson/varys/compare/v0.2.1...v0.3.0) (2026-09-19)
+
+
+### Features
+
+* **deps:** update astral-sh/setup-uv action to v10.1.0 ([#44](https://github.com/sebdanielsson/varys/issues/44)) ([3791160](https://github.com/sebdanielsson/varys/commit/37911601b32a4fe4c534558bbe8e30045648fe89))
+* **deps:** update dependency microsoft.windowsappsdk to 2.5.1 ([#45](https://github.com/sebdanielsson/varys/issues/45)) ([af28d9c](https://github.com/sebdanielsson/varys/commit/af28d9c1246f94463bc554d8f0fab8b802b9b37d))
+
+
+### Bug Fixes
+
+* **ci:** sync the winget-pkgs fork before submitting ([#38](https://github.com/sebdanielsson/varys/issues/38)) ([2bd63c5](https://github.com/sebdanielsson/varys/commit/2bd63c59dd26920c90e218e6787176fd4c1f3556))
+* **deps:** update dependency microsoft.windows.sdk.buildtools to 10.0.28000.2705 ([#43](https://github.com/sebdanielsson/varys/issues/43)) ([05acde8](https://github.com/sebdanielsson/varys/commit/05acde8f5badb53c4a60c4f40706ad5e09a1474a))
+* **deps:** update dependency microsoft.windows.sdk.buildtools.winapp to 0.6.1 ([#42](https://github.com/sebdanielsson/varys/issues/42)) ([43b802e](https://github.com/sebdanielsson/varys/commit/43b802ecc6b73b4489a76e22bd3db3c73aa6656b))
+* **sidecar:** contain meeting ids to the meetings directory ([#40](https://github.com/sebdanielsson/varys/issues/40)) ([0109a37](https://github.com/sebdanielsson/varys/commit/0109a373c340bcd1451260ab60a8197bb99efb18))
+* **sidecar:** resolve meeting ids by lookup instead of path join ([#41](https://github.com/sebdanielsson/varys/issues/41)) ([bf70097](https://github.com/sebdanielsson/varys/commit/bf700979c6e84b70bb3458807c4f18cbbf4c4944))
+
 ## [0.2.1](https://github.com/sebdanielsson/varys/compare/v0.2.0...v0.2.1) (2026-08-17)
 
 
