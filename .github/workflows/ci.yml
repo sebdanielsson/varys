@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-dotnet@v6.0.0
         with:
-          dotnet-version: "10.0.x"
+          dotnet-version: "10.0.401"
       - name: Build
         run: dotnet build app/Varys/Varys.csproj -c Release -p:Platform=x64
 
