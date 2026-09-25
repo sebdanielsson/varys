@@ -1403,7 +1403,7 @@ requires-dist = [
     { name = "silero-vad", specifier = ">=6.2.3" },
     { name = "soundcard", specifier = ">=0.4.6" },
     { name = "sounddevice", specifier = ">=0.5.6" },
-    { name = "soundfile", specifier = ">=0.12" },
+    { name = "soundfile", specifier = ">=0.14.0" },
     { name = "soxr", specifier = ">=0.5" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu128" },
     { name = "torchaudio", index = "https://download.pytorch.org/whl/cu128" },
