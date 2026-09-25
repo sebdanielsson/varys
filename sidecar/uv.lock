@@ -1404,7 +1404,7 @@ requires-dist = [
     { name = "soundcard", specifier = ">=0.4.6" },
     { name = "sounddevice", specifier = ">=0.5.6" },
     { name = "soundfile", specifier = ">=0.14.0" },
-    { name = "soxr", specifier = ">=0.5" },
+    { name = "soxr", specifier = ">=1.1.0" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu128" },
     { name = "torchaudio", index = "https://download.pytorch.org/whl/cu128" },
     { name = "transformers", git = "https://github.com/huggingface/transformers" },
