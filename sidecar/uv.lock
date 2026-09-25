@@ -1401,7 +1401,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26" },
     { name = "pydantic-settings", specifier = ">=2.4" },
     { name = "silero-vad", specifier = ">=6.2.3" },
-    { name = "soundcard", specifier = ">=0.4.3" },
+    { name = "soundcard", specifier = ">=0.4.6" },
     { name = "sounddevice", specifier = ">=0.5.5" },
     { name = "soundfile", specifier = ">=0.12" },
     { name = "soxr", specifier = ">=0.5" },
