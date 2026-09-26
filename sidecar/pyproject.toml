@@ -7,7 +7,7 @@ dependencies = [
     "torch",
     "torchaudio",
     "transformers",
-    "accelerate>=0.34",
+    "accelerate>=1.15.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "httpx>=0.28.1",
