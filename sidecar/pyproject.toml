@@ -9,7 +9,7 @@ dependencies = [
     "transformers",
     "accelerate>=1.15.0",
     "fastapi>=0.141.1",
-    "uvicorn[standard]>=0.30",
+    "uvicorn[standard]>=0.54.0",
     "httpx>=0.28.1",
     "numpy>=2.5.3",
     "soundfile>=0.14.0",
