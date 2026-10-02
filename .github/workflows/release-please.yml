@@ -115,6 +115,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::warning::Could not fast-forward the winget-pkgs fork - it may have diverged from upstream. Reset it to microsoft:master by hand if the submission below fails."
           }
+          # Exit explicitly: without this the step ends with the failed `gh` call's exit code and
+          # fails the job, even though the sync is deliberately non-fatal.
+          exit 0
 
       - name: Submit to winget-pkgs
         shell: pwsh
