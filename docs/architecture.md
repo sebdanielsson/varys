@@ -8,7 +8,7 @@ machine: speech-to-text via NVIDIA Parakeet-TDT, summaries via a local LLM.
 | Component | Tech | Responsibility |
 |-----------|------|----------------|
 | UI app    | WinUI 3 (Windows App SDK 2.x, C#/.NET) | Live caption window, transcript view + export, start/stop, tray icon. Launches and supervises the sidecar. |
-| Sidecar   | Python 3.13, FastAPI | Audio capture, VAD, Parakeet ASR, transcript store, Ollama summary. |
+| Sidecar   | Python 3.14, FastAPI | Audio capture, VAD, Parakeet ASR, transcript store, Ollama summary. |
 
 They communicate over **localhost**:
 
@@ -42,7 +42,7 @@ They communicate over **localhost**:
 
 ## Pinned environment facts (verified 2026-06)
 
-- **Python 3.13** is the ceiling: PyTorch ships no CUDA wheels for 3.14 yet.
+- **Python 3.14.8** is pinned exactly via `requires-python` in `sidecar/pyproject.toml`.
 - **PyTorch + CUDA 12.8** wheels (`--index-url .../whl/cu128`) — includes
   Turing (`sm_75`) for the work PC's RTX 20-series and Ada for the 4070 Super.
 - **`transformers` from source (git main).** The TDT decoder for
@@ -69,7 +69,7 @@ They communicate over **localhost**:
 
 | Phase | Deliverable |
 |-------|-------------|
-| 0 | Scaffold + environment (Python 3.13 venv, pinned deps). |
+| 0 | Scaffold + environment (Python 3.14 venv, pinned deps). |
 | 1 | Headless sidecar core: capture mic + loopback → 16 kHz mono → VAD → Parakeet → timestamped console transcript. Validate Swedish + English. |
 | 2 | FastAPI service: WebSocket stream + REST control; save transcript JSON. |
 | 3 | WinUI shell: launch/supervise sidecar, live caption window (Me/Them). |

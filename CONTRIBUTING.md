@@ -32,7 +32,7 @@ The C# side stays pure UI; all audio and ML lives in the sidecar. See
 ```
 app/Varys/      WinUI 3 desktop app (C#)
 app/branding/   logo.svg + gen_assets.py (icon / tile generation)
-sidecar/        Python 3.13 engine (the transcribe_sidecar package)
+sidecar/        Python 3.14 engine (the transcribe_sidecar package)
 installer/      Varys.wxs — WiX v5 authoring for the MSI
 .github/        CI + release workflows
 docs/           architecture & decisions
@@ -41,7 +41,7 @@ docs/           architecture & decisions
 ## Prerequisites (dev)
 
 - **.NET 10 SDK** (10.0.300 or newer).
-- **[uv](https://docs.astral.sh/uv/)** — manages Python 3.13 and every Python dependency.
+- **[uv](https://docs.astral.sh/uv/)** — manages Python 3.14 and every Python dependency.
 - **NVIDIA GPU + recent driver** (the CUDA 12.8 PyTorch wheels are pulled automatically).
 - **[Ollama](https://ollama.com)** with `gemma4:e2b` and `embeddinggemma` pulled (or let the
   app's first-run greeter install them).
@@ -101,7 +101,7 @@ Handy scripts live in `sidecar/scripts/` (e.g. `server_e2e.py`, `library_test.py
   the new version to winget. The first-run welcome provisions the engine, speech/language models,
   and Ollama (so the installer stays small).
 - **`.github/workflows/sidecar-smoke.yml`** — `uv sync --frozen` + imports the whole native stack
-  on Windows. Runs only when `sidecar/pyproject.toml`, `uv.lock`, or `.python-version` change,
+  on Windows. Runs only when `sidecar/pyproject.toml` or `uv.lock` change,
   since the lint job never installs the dependencies. Runners have no GPU, so it can't exercise
   CUDA, but it catches a missing wheel or an ABI break before it reaches a release.
 - **`.github/workflows/lint-pr.yml`** — fails the PR if its title isn't a conventional commit,
