@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/sebdanielsson/varys/compare/v0.3.0...v0.4.0) (2026-10-10)
+
+
+### Features
+
+* **deps:** update astral-sh/setup-uv action to v10.3.0 ([#73](https://github.com/sebdanielsson/varys/issues/73)) ([4f062ea](https://github.com/sebdanielsson/varys/commit/4f062ea76bf19add36ae52a91706ae51438afd1e))
+* **deps:** update dependency fastapi to &gt;=0.143.0 ([#72](https://github.com/sebdanielsson/varys/issues/72)) ([50a1bc5](https://github.com/sebdanielsson/varys/commit/50a1bc543b9c07427f2b97e852789485575cccf6))
+
 ## [0.3.0](https://github.com/sebdanielsson/varys/compare/v0.2.1...v0.3.0) (2026-10-02)
 
 
