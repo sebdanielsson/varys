@@ -7,9 +7,9 @@ name: Sidecar deps smoke
 on:
   push:
     branches: [main]
-    paths: [sidecar/pyproject.toml, sidecar/uv.lock, sidecar/.python-version]
+    paths: [sidecar/pyproject.toml, sidecar/uv.lock]
   pull_request:
-    paths: [sidecar/pyproject.toml, sidecar/uv.lock, sidecar/.python-version]
+    paths: [sidecar/pyproject.toml, sidecar/uv.lock]
   workflow_dispatch:
 
 # Both jobs only read the checkout; nothing here needs to write to the repo.
