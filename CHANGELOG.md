@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0](https://github.com/sebdanielsson/varys/compare/v0.3.0...v0.4.0) (2026-10-16)
+
+
+### Features
+
+* **deps:** update astral-sh/setup-uv action to v10.3.0 ([#73](https://github.com/sebdanielsson/varys/issues/73)) ([4f062ea](https://github.com/sebdanielsson/varys/commit/4f062ea76bf19add36ae52a91706ae51438afd1e))
+* **deps:** update dependency fastapi to &gt;=0.143.0 ([#72](https://github.com/sebdanielsson/varys/issues/72)) ([50a1bc5](https://github.com/sebdanielsson/varys/commit/50a1bc543b9c07427f2b97e852789485575cccf6))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.0 ([#80](https://github.com/sebdanielsson/varys/issues/80)) ([5e16672](https://github.com/sebdanielsson/varys/commit/5e1667297bf74dfdf1c75a074aad54d9cff9e83d))
+
+
+### Bug Fixes
+
+* **deps:** update dependency dotnet-sdk to v10.0.402 ([#78](https://github.com/sebdanielsson/varys/issues/78)) ([a5ea19f](https://github.com/sebdanielsson/varys/commit/a5ea19fe773103960aa0c873fb5bb19357ae99c5))
+* **deps:** update dependency fastapi to &gt;=0.143.1 ([#79](https://github.com/sebdanielsson/varys/issues/79)) ([6afd74d](https://github.com/sebdanielsson/varys/commit/6afd74d846f9c71200f17ff74ba789a9c28ece88))
+* **deps:** update dependency fastapi to &gt;=0.143.2 ([#81](https://github.com/sebdanielsson/varys/issues/81)) ([161822f](https://github.com/sebdanielsson/varys/commit/161822f93b871e730a0392fcadf785ebafed89a1))
+* **deps:** update dependency fastapi to &gt;=0.143.3 ([#83](https://github.com/sebdanielsson/varys/issues/83)) ([d9c5474](https://github.com/sebdanielsson/varys/commit/d9c54746e128e3771275b5d39cbc4f7020c5e851))
+* **deps:** update dependency markdig to 1.4.1 ([#82](https://github.com/sebdanielsson/varys/issues/82)) ([ed4513e](https://github.com/sebdanielsson/varys/commit/ed4513ed18059487b1ac731ee7bbcf89ff0914ab))
+* **deps:** update dependency numpy to &gt;=2.5.4 ([#76](https://github.com/sebdanielsson/varys/issues/76)) ([604f3be](https://github.com/sebdanielsson/varys/commit/604f3be429f7f2b1da9d85fe6088252125c1010c))
+
 ## [0.3.0](https://github.com/sebdanielsson/varys/compare/v0.2.1...v0.3.0) (2026-10-02)
 
 
