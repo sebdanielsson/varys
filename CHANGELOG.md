@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.4.0](https://github.com/sebdanielsson/varys/compare/v0.3.0...v0.4.0) (2026-10-24)
+
+
+### Features
+
+* **deps:** update astral-sh/setup-uv action to v10.3.0 ([#73](https://github.com/sebdanielsson/varys/issues/73)) ([4f062ea](https://github.com/sebdanielsson/varys/commit/4f062ea76bf19add36ae52a91706ae51438afd1e))
+* **deps:** update dependency fastapi to &gt;=0.143.0 ([#72](https://github.com/sebdanielsson/varys/issues/72)) ([50a1bc5](https://github.com/sebdanielsson/varys/commit/50a1bc543b9c07427f2b97e852789485575cccf6))
+* **deps:** update dependency fastapi to &gt;=0.144.0 ([#84](https://github.com/sebdanielsson/varys/issues/84)) ([c03ac9f](https://github.com/sebdanielsson/varys/commit/c03ac9f1d1971db72e98cb22a90736cbc4c3f87b))
+* **deps:** update dependency fastapi to &gt;=0.146.0 ([#85](https://github.com/sebdanielsson/varys/issues/85)) ([2a3253f](https://github.com/sebdanielsson/varys/commit/2a3253f5f51657cb08618163fd5a4b2f7015fbab))
+* **deps:** update dependency fastapi to &gt;=0.147.0 ([#86](https://github.com/sebdanielsson/varys/issues/86)) ([d7a520f](https://github.com/sebdanielsson/varys/commit/d7a520f06eb54bf4b6f731b9f4a4458e1c7782d3))
+* **deps:** update dependency fastapi to &gt;=0.156.3 ([#89](https://github.com/sebdanielsson/varys/issues/89)) ([0db94cb](https://github.com/sebdanielsson/varys/commit/0db94cbb5d328aa32acb85021030f1f9cc235d64))
+* **deps:** update dependency fastapi to &gt;=0.158.0 ([#92](https://github.com/sebdanielsson/varys/issues/92)) ([440a459](https://github.com/sebdanielsson/varys/commit/440a459b9c168b17b9c8c25b6e79e6682530be82))
+* **deps:** update dependency fastapi to &gt;=0.159.1 ([#94](https://github.com/sebdanielsson/varys/issues/94)) ([4f89a02](https://github.com/sebdanielsson/varys/commit/4f89a02d56f9e9f70a3855cab1e4f33005852250))
+* **deps:** update dependency fastapi to &gt;=0.161.0 ([#97](https://github.com/sebdanielsson/varys/issues/97)) ([d51995b](https://github.com/sebdanielsson/varys/commit/d51995b55cea0a81d7f8d1e93e8a709ecd56a9d1))
+* **deps:** update dependency fastapi to &gt;=0.162.0 ([#99](https://github.com/sebdanielsson/varys/issues/99)) ([f892eff](https://github.com/sebdanielsson/varys/commit/f892eff4756d89dd7078b446b7e1e79e166e69ab))
+* **deps:** update dependency markdig to 1.5.0 ([#100](https://github.com/sebdanielsson/varys/issues/100)) ([f3497e2](https://github.com/sebdanielsson/varys/commit/f3497e2bc7567da7c6d6e5b0faa73cb8d202ac8f))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.0 ([#80](https://github.com/sebdanielsson/varys/issues/80)) ([5e16672](https://github.com/sebdanielsson/varys/commit/5e1667297bf74dfdf1c75a074aad54d9cff9e83d))
+
+
+### Bug Fixes
+
+* **deps:** update astral-sh/setup-uv action to v10.3.1 ([#93](https://github.com/sebdanielsson/varys/issues/93)) ([2b51cc3](https://github.com/sebdanielsson/varys/commit/2b51cc3034ec7b68ea9488fceb9c9f75efd2bbe0))
+* **deps:** update astral-sh/setup-uv action to v10.3.2 ([#96](https://github.com/sebdanielsson/varys/issues/96)) ([c256399](https://github.com/sebdanielsson/varys/commit/c2563990abe589bb64d04dff10accb557a564599))
+* **deps:** update dependency dotnet-sdk to v10.0.402 ([#78](https://github.com/sebdanielsson/varys/issues/78)) ([a5ea19f](https://github.com/sebdanielsson/varys/commit/a5ea19fe773103960aa0c873fb5bb19357ae99c5))
+* **deps:** update dependency fastapi to &gt;=0.143.1 ([#79](https://github.com/sebdanielsson/varys/issues/79)) ([6afd74d](https://github.com/sebdanielsson/varys/commit/6afd74d846f9c71200f17ff74ba789a9c28ece88))
+* **deps:** update dependency fastapi to &gt;=0.143.2 ([#81](https://github.com/sebdanielsson/varys/issues/81)) ([161822f](https://github.com/sebdanielsson/varys/commit/161822f93b871e730a0392fcadf785ebafed89a1))
+* **deps:** update dependency fastapi to &gt;=0.143.3 ([#83](https://github.com/sebdanielsson/varys/issues/83)) ([d9c5474](https://github.com/sebdanielsson/varys/commit/d9c54746e128e3771275b5d39cbc4f7020c5e851))
+* **deps:** update dependency fastapi to &gt;=0.156.4 ([#90](https://github.com/sebdanielsson/varys/issues/90)) ([80a491f](https://github.com/sebdanielsson/varys/commit/80a491f06d88ab6f60dc150132c2f45f1a77da96))
+* **deps:** update dependency fastapi to &gt;=0.156.7 ([#91](https://github.com/sebdanielsson/varys/issues/91)) ([285be1f](https://github.com/sebdanielsson/varys/commit/285be1f2423c008e7604fd252c6c5038b35ebf34))
+* **deps:** update dependency fastapi to &gt;=0.161.1 ([#98](https://github.com/sebdanielsson/varys/issues/98)) ([4365304](https://github.com/sebdanielsson/varys/commit/4365304f2592cb83f1bff3f14ad89fc24871e431))
+* **deps:** update dependency markdig to 1.4.1 ([#82](https://github.com/sebdanielsson/varys/issues/82)) ([ed4513e](https://github.com/sebdanielsson/varys/commit/ed4513ed18059487b1ac731ee7bbcf89ff0914ab))
+* **deps:** update dependency markdig to 1.4.2 ([#87](https://github.com/sebdanielsson/varys/issues/87)) ([311e0f3](https://github.com/sebdanielsson/varys/commit/311e0f39cedf17754617c7a8a1fe0f490ded1eb5))
+* **deps:** update dependency numpy to &gt;=2.5.4 ([#76](https://github.com/sebdanielsson/varys/issues/76)) ([604f3be](https://github.com/sebdanielsson/varys/commit/604f3be429f7f2b1da9d85fe6088252125c1010c))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.1 ([#88](https://github.com/sebdanielsson/varys/issues/88)) ([b56939c](https://github.com/sebdanielsson/varys/commit/b56939c4e0d842960a2af5d546fe9741956f13a5))
+
 ## [0.3.0](https://github.com/sebdanielsson/varys/compare/v0.2.1...v0.3.0) (2026-10-02)
 
 
