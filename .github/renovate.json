@@ -1,13 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "rangeStrategy": "bump",
+  "extends": ["github>sebdanielsson/renovate-config"],
   "packageRules": [
     {
-      "description": "Auto-merge patch updates of stable (non-0.x) dependencies",
-      "matchUpdateTypes": ["patch"],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": true
+      "description": "The shared preset automerges stable minor and patch updates. Minor updates are feat(deps) here and make Release Please cut a minor release, so review those by hand.",
+      "matchUpdateTypes": ["minor"],
+      "automerge": false
     },
     {
       "description": "Patch updates -> fix(deps) so Release Please cuts a patch",
