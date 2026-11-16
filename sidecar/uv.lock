@@ -1515,7 +1515,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=1.15.0" },
-    { name = "fastapi", specifier = ">=0.162.5" },
+    { name = "fastapi", specifier = ">=0.163.1" },
     { name = "faster-whisper", specifier = ">=1.2.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "librosa", specifier = ">=1.0.1" },
