@@ -1519,7 +1519,7 @@ requires-dist = [
     { name = "faster-whisper", specifier = ">=1.2.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "librosa", specifier = ">=1.0.1" },
-    { name = "numpy", specifier = ">=2.5.4" },
+    { name = "numpy", specifier = ">=2.5.5" },
     { name = "pydantic-settings", specifier = ">=2.16.3" },
     { name = "silero-vad", specifier = ">=6.2.3" },
     { name = "soundcard", specifier = ">=0.4.6" },
