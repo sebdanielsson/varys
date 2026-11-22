@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-dotnet@v6.1.0
         with:
           dotnet-version: "11.0.100"
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
       - name: Install WiX (v5 — MIT-licensed, no OSMF gate)
         run: dotnet tool install --global wix --version "5.*"
       - name: Resolve version
