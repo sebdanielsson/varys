@@ -1,5 +1,78 @@
 # Changelog
 
+## [0.4.0](https://github.com/sebdanielsson/varys/compare/v0.3.0...v0.4.0) (2026-11-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#134](https://github.com/sebdanielsson/varys/issues/134))
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#125](https://github.com/sebdanielsson/varys/issues/125))
+* **deps:** Update dependency dotnet-sdk to v11 ([#119](https://github.com/sebdanielsson/varys/issues/119))
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#117](https://github.com/sebdanielsson/varys/issues/117))
+
+### Features
+
+* **deps:** update actions/setup-dotnet action to v6.1.0 ([#109](https://github.com/sebdanielsson/varys/issues/109)) ([d1ed212](https://github.com/sebdanielsson/varys/commit/d1ed212fccbd399c90f5d61070e410fce7d18727))
+* **deps:** update astral-sh/setup-uv action to v10.3.0 ([#73](https://github.com/sebdanielsson/varys/issues/73)) ([4f062ea](https://github.com/sebdanielsson/varys/commit/4f062ea76bf19add36ae52a91706ae51438afd1e))
+* **deps:** update astral-sh/setup-uv action to v10.4.0 ([#131](https://github.com/sebdanielsson/varys/issues/131)) ([aa74fe7](https://github.com/sebdanielsson/varys/commit/aa74fe7958f90690de10518035e881d28aac55cd))
+* **deps:** update dependency accelerate to &gt;=1.16.0 ([#127](https://github.com/sebdanielsson/varys/issues/127)) ([713c68c](https://github.com/sebdanielsson/varys/commit/713c68c3fac9bfb3580fc89e5f3b2a9f8e0e7e10))
+* **deps:** Update dependency dotnet-sdk to v11 ([#119](https://github.com/sebdanielsson/varys/issues/119)) ([c88fec5](https://github.com/sebdanielsson/varys/commit/c88fec5b83136a57cb5911c59d69171e9ec656a6))
+* **deps:** update dependency fastapi to &gt;=0.143.0 ([#72](https://github.com/sebdanielsson/varys/issues/72)) ([50a1bc5](https://github.com/sebdanielsson/varys/commit/50a1bc543b9c07427f2b97e852789485575cccf6))
+* **deps:** update dependency fastapi to &gt;=0.144.0 ([#84](https://github.com/sebdanielsson/varys/issues/84)) ([c03ac9f](https://github.com/sebdanielsson/varys/commit/c03ac9f1d1971db72e98cb22a90736cbc4c3f87b))
+* **deps:** update dependency fastapi to &gt;=0.146.0 ([#85](https://github.com/sebdanielsson/varys/issues/85)) ([2a3253f](https://github.com/sebdanielsson/varys/commit/2a3253f5f51657cb08618163fd5a4b2f7015fbab))
+* **deps:** update dependency fastapi to &gt;=0.147.0 ([#86](https://github.com/sebdanielsson/varys/issues/86)) ([d7a520f](https://github.com/sebdanielsson/varys/commit/d7a520f06eb54bf4b6f731b9f4a4458e1c7782d3))
+* **deps:** update dependency fastapi to &gt;=0.156.3 ([#89](https://github.com/sebdanielsson/varys/issues/89)) ([0db94cb](https://github.com/sebdanielsson/varys/commit/0db94cbb5d328aa32acb85021030f1f9cc235d64))
+* **deps:** update dependency fastapi to &gt;=0.158.0 ([#92](https://github.com/sebdanielsson/varys/issues/92)) ([440a459](https://github.com/sebdanielsson/varys/commit/440a459b9c168b17b9c8c25b6e79e6682530be82))
+* **deps:** update dependency fastapi to &gt;=0.159.1 ([#94](https://github.com/sebdanielsson/varys/issues/94)) ([4f89a02](https://github.com/sebdanielsson/varys/commit/4f89a02d56f9e9f70a3855cab1e4f33005852250))
+* **deps:** update dependency fastapi to &gt;=0.161.0 ([#97](https://github.com/sebdanielsson/varys/issues/97)) ([d51995b](https://github.com/sebdanielsson/varys/commit/d51995b55cea0a81d7f8d1e93e8a709ecd56a9d1))
+* **deps:** update dependency fastapi to &gt;=0.162.0 ([#99](https://github.com/sebdanielsson/varys/issues/99)) ([f892eff](https://github.com/sebdanielsson/varys/commit/f892eff4756d89dd7078b446b7e1e79e166e69ab))
+* **deps:** update dependency httpx to &gt;=0.29.0 ([#137](https://github.com/sebdanielsson/varys/issues/137)) ([a5eb1d7](https://github.com/sebdanielsson/varys/commit/a5eb1d709cc0bbe7f5aae2dcb77b35ae7f745843))
+* **deps:** update dependency markdig to 1.5.0 ([#100](https://github.com/sebdanielsson/varys/issues/100)) ([f3497e2](https://github.com/sebdanielsson/varys/commit/f3497e2bc7567da7c6d6e5b0faa73cb8d202ac8f))
+* **deps:** update dependency markdig to 1.6.0 ([#112](https://github.com/sebdanielsson/varys/issues/112)) ([325b6ec](https://github.com/sebdanielsson/varys/commit/325b6ecbaf29474e1fdb57111ce2fb135d31d8d0))
+* **deps:** update dependency microsoft.windows.sdk.buildtools.winapp to 0.8.0 ([#115](https://github.com/sebdanielsson/varys/issues/115)) ([8f116d5](https://github.com/sebdanielsson/varys/commit/8f116d51df45150d16fce36236370086544f4f95))
+* **deps:** update dependency microsoft.windowsappsdk to 2.6.4 ([#103](https://github.com/sebdanielsson/varys/issues/103)) ([e2e8e97](https://github.com/sebdanielsson/varys/commit/e2e8e977b7bdecfef566a780bf7d4bde0ffbf6d0))
+* **deps:** update dependency microsoft.windowsappsdk to 2.7.0 ([#129](https://github.com/sebdanielsson/varys/issues/129)) ([09342ce](https://github.com/sebdanielsson/varys/commit/09342ceaf91e42552ee3b662a16599453f782a85))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.0 ([#80](https://github.com/sebdanielsson/varys/issues/80)) ([5e16672](https://github.com/sebdanielsson/varys/commit/5e1667297bf74dfdf1c75a074aad54d9cff9e83d))
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#117](https://github.com/sebdanielsson/varys/issues/117)) ([2109682](https://github.com/sebdanielsson/varys/commit/210968294f92acb95b74eed6fc820101b4a20dbb))
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#125](https://github.com/sebdanielsson/varys/issues/125)) ([e249920](https://github.com/sebdanielsson/varys/commit/e249920450860d6acbc5f42ebb34a613e8e622cb))
+* **deps:** Update dependency setuptools to v84 [SECURITY] ([#134](https://github.com/sebdanielsson/varys/issues/134)) ([95e59aa](https://github.com/sebdanielsson/varys/commit/95e59aa436d8054dfa8dccf13744c4e47d127d96))
+* **deps:** update dependency silero-vad to &gt;=6.3 ([#135](https://github.com/sebdanielsson/varys/issues/135)) ([ba8d756](https://github.com/sebdanielsson/varys/commit/ba8d756c4efa1c345f5b3c2e95d6d4d8ad12c28a))
+
+
+### Bug Fixes
+
+* **deps:** update amannn/action-semantic-pull-request action to v6.1.2 ([#113](https://github.com/sebdanielsson/varys/issues/113)) ([ea1379d](https://github.com/sebdanielsson/varys/commit/ea1379d349655d5011bee64410da1c37158bd9c0))
+* **deps:** update amannn/action-semantic-pull-request action to v6.1.3 ([#132](https://github.com/sebdanielsson/varys/issues/132)) ([853330b](https://github.com/sebdanielsson/varys/commit/853330b6033caba124dda4e12682378198118c71))
+* **deps:** update amannn/action-semantic-pull-request action to v6.1.4 ([#136](https://github.com/sebdanielsson/varys/issues/136)) ([2de856d](https://github.com/sebdanielsson/varys/commit/2de856d87556b6d095fa140c2c9c35d762000c3d))
+* **deps:** update astral-sh/setup-uv action to v10.3.1 ([#93](https://github.com/sebdanielsson/varys/issues/93)) ([2b51cc3](https://github.com/sebdanielsson/varys/commit/2b51cc3034ec7b68ea9488fceb9c9f75efd2bbe0))
+* **deps:** update astral-sh/setup-uv action to v10.3.2 ([#96](https://github.com/sebdanielsson/varys/issues/96)) ([c256399](https://github.com/sebdanielsson/varys/commit/c2563990abe589bb64d04dff10accb557a564599))
+* **deps:** update astral-sh/setup-uv action to v10.3.3 ([#104](https://github.com/sebdanielsson/varys/issues/104)) ([48871c2](https://github.com/sebdanielsson/varys/commit/48871c225b45449d1b9aa3edae1e7861927c28b1))
+* **deps:** update dependency dotnet-sdk to v10.0.402 ([#78](https://github.com/sebdanielsson/varys/issues/78)) ([a5ea19f](https://github.com/sebdanielsson/varys/commit/a5ea19fe773103960aa0c873fb5bb19357ae99c5))
+* **deps:** update dependency dotnet-sdk to v10.0.403 ([#101](https://github.com/sebdanielsson/varys/issues/101)) ([a49d063](https://github.com/sebdanielsson/varys/commit/a49d063020a8b5283e3cc36392bd999fe2aa42c9))
+* **deps:** update dependency dotnet-sdk to v10.0.404 ([#118](https://github.com/sebdanielsson/varys/issues/118)) ([a49cf30](https://github.com/sebdanielsson/varys/commit/a49cf30578a855dc0335999c0488f3a944e3db17))
+* **deps:** update dependency fastapi to &gt;=0.143.1 ([#79](https://github.com/sebdanielsson/varys/issues/79)) ([6afd74d](https://github.com/sebdanielsson/varys/commit/6afd74d846f9c71200f17ff74ba789a9c28ece88))
+* **deps:** update dependency fastapi to &gt;=0.143.2 ([#81](https://github.com/sebdanielsson/varys/issues/81)) ([161822f](https://github.com/sebdanielsson/varys/commit/161822f93b871e730a0392fcadf785ebafed89a1))
+* **deps:** update dependency fastapi to &gt;=0.143.3 ([#83](https://github.com/sebdanielsson/varys/issues/83)) ([d9c5474](https://github.com/sebdanielsson/varys/commit/d9c54746e128e3771275b5d39cbc4f7020c5e851))
+* **deps:** update dependency fastapi to &gt;=0.156.4 ([#90](https://github.com/sebdanielsson/varys/issues/90)) ([80a491f](https://github.com/sebdanielsson/varys/commit/80a491f06d88ab6f60dc150132c2f45f1a77da96))
+* **deps:** update dependency fastapi to &gt;=0.156.7 ([#91](https://github.com/sebdanielsson/varys/issues/91)) ([285be1f](https://github.com/sebdanielsson/varys/commit/285be1f2423c008e7604fd252c6c5038b35ebf34))
+* **deps:** update dependency fastapi to &gt;=0.161.1 ([#98](https://github.com/sebdanielsson/varys/issues/98)) ([4365304](https://github.com/sebdanielsson/varys/commit/4365304f2592cb83f1bff3f14ad89fc24871e431))
+* **deps:** update dependency fastapi to &gt;=0.162.2 ([#114](https://github.com/sebdanielsson/varys/issues/114)) ([e1c6a6b](https://github.com/sebdanielsson/varys/commit/e1c6a6bb22711de9b44fde6f4c6bd7755d596cb1))
+* **deps:** update dependency fastapi to &gt;=0.162.5 ([#120](https://github.com/sebdanielsson/varys/issues/120)) ([623a7ee](https://github.com/sebdanielsson/varys/commit/623a7ee037c1b727ba503c78957d41dce7e8ebb4))
+* **deps:** update dependency fastapi to &gt;=0.163.1 ([#123](https://github.com/sebdanielsson/varys/issues/123)) ([491a64c](https://github.com/sebdanielsson/varys/commit/491a64c7131231ae72e079c04f2ee4e07826b5b4))
+* **deps:** update dependency fastapi to &gt;=0.163.2 ([#128](https://github.com/sebdanielsson/varys/issues/128)) ([30f91e1](https://github.com/sebdanielsson/varys/commit/30f91e1e124c5a99740293e6a90faecd48a69d7d))
+* **deps:** update dependency fastapi to &gt;=0.165.0 ([#130](https://github.com/sebdanielsson/varys/issues/130)) ([9e84fc6](https://github.com/sebdanielsson/varys/commit/9e84fc6d1b72677b7b893e1d7e186d5f9add7398))
+* **deps:** update dependency librosa to &gt;=1.0.1 ([#121](https://github.com/sebdanielsson/varys/issues/121)) ([7f41a2e](https://github.com/sebdanielsson/varys/commit/7f41a2e7a29b159d02beeba3be42e2f1cb12cf54))
+* **deps:** update dependency markdig to 1.4.1 ([#82](https://github.com/sebdanielsson/varys/issues/82)) ([ed4513e](https://github.com/sebdanielsson/varys/commit/ed4513ed18059487b1ac731ee7bbcf89ff0914ab))
+* **deps:** update dependency markdig to 1.4.2 ([#87](https://github.com/sebdanielsson/varys/issues/87)) ([311e0f3](https://github.com/sebdanielsson/varys/commit/311e0f39cedf17754617c7a8a1fe0f490ded1eb5))
+* **deps:** update dependency markdig to 1.5.1 ([#106](https://github.com/sebdanielsson/varys/issues/106)) ([088ef0b](https://github.com/sebdanielsson/varys/commit/088ef0be6de96f0e408bf466564ac35b0f11be1e))
+* **deps:** update dependency microsoft.windows.sdk.buildtools to 10.0.28000.2957 ([#105](https://github.com/sebdanielsson/varys/issues/105)) ([0484c98](https://github.com/sebdanielsson/varys/commit/0484c98488e6e78fc3b8103a4331eef63fba3e29))
+* **deps:** update dependency microsoft.windowsappsdk to 2.6.5 ([#108](https://github.com/sebdanielsson/varys/issues/108)) ([30daeef](https://github.com/sebdanielsson/varys/commit/30daeefac60ba14de5cb93aa3afefd24e9e8f378))
+* **deps:** update dependency numpy to &gt;=2.5.4 ([#76](https://github.com/sebdanielsson/varys/issues/76)) ([604f3be](https://github.com/sebdanielsson/varys/commit/604f3be429f7f2b1da9d85fe6088252125c1010c))
+* **deps:** update dependency numpy to &gt;=2.5.5 ([#126](https://github.com/sebdanielsson/varys/issues/126)) ([8c3e345](https://github.com/sebdanielsson/varys/commit/8c3e345782e50c161ca26b2d2a80b889c65bb426))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.1 ([#88](https://github.com/sebdanielsson/varys/issues/88)) ([b56939c](https://github.com/sebdanielsson/varys/commit/b56939c4e0d842960a2af5d546fe9741956f13a5))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.2 ([#107](https://github.com/sebdanielsson/varys/issues/107)) ([4253b75](https://github.com/sebdanielsson/varys/commit/4253b75298fecd42bea7d1b31ade8fc75bb03f2c))
+* **deps:** update dependency pydantic-settings to &gt;=2.16.3 ([#122](https://github.com/sebdanielsson/varys/issues/122)) ([e830e90](https://github.com/sebdanielsson/varys/commit/e830e903c28039a80f119512d03e20f3ed13c4cd))
+
 ## [0.3.0](https://github.com/sebdanielsson/varys/compare/v0.2.1...v0.3.0) (2026-10-02)
 
 
